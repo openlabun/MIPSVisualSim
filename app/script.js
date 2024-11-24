@@ -1,4 +1,7 @@
 
+
+
+
 function translateInstructionToHex(instruction) {
     const opcodeMap = {
         "add": "000000", "sub": "000000", "slt": "000000", "and": "000000", "or": "000000",
@@ -62,6 +65,7 @@ function translateInstructionToHex(instruction) {
         binaryInstruction += rs + rt + (offset >>> 0).toString(2).padStart(16, '0');
     } else if (["j"].includes(parts[0])) {
         // J-type instruction
+        console.log("partes ",parts[0],parts[1])
         const address = parseInt(parts[1]);
         if (isNaN(address)) return "Invalid Syntax";
         binaryInstruction += (address >>> 0).toString(2).padStart(26, '0');
@@ -104,7 +108,7 @@ function translateInstructionToMIPS(hexInstruction) {
     };
     const binaryInstruction = hexToBinary(hexInstruction);
     const opcode = binaryInstruction.slice(0, 6);
-    console.log(opcode);
+    console.log("opcode",opcode);
     const opcodeMIPS = opcodeMap[opcode];
     if (!opcodeMIPS) return "Unknown Instruction, opcode null";
 
@@ -113,9 +117,9 @@ function translateInstructionToMIPS(hexInstruction) {
     if (["add", "sub", "slt", "and", "or"].includes(opcodeMIPS)) {
         // R-type instruction
         const func = binaryInstruction.slice(26, 32);;
-        console.log("Instruction func ", func);
+        //console.log("Instruction func ", func);
         const funcMIPS = funcMap[func];
-        console.log("Instruction ", funcMIPS);
+        //console.log("Instruction ", funcMIPS);
         if (!funcMIPS) return "Unknown Instruction (function)";
         mipsInstruction = funcMIPS + " ";
         const rs = regMap[binaryInstruction.slice(6, 11)];
@@ -133,12 +137,12 @@ function translateInstructionToMIPS(hexInstruction) {
         mipsInstruction += rs + " " + rt + " " + binaryToHex(offset);
     } else if (["addi"].includes(opcodeMIPS)) {
         // I-type instruction
-        console.log("I-type instruction, addi");
+        //console.log("I-type instruction, addi");
         const rt = regMap[binaryInstruction.slice(6, 11)];
         const rs = regMap[binaryInstruction.slice(11, 16)];
         // const immediate = parseInt(binaryInstruction.slice(16, 32), 16);
-        console.log('immediate ', binaryInstruction.slice(16, 32));
-        console.log('immediate formated ', binaryToHex(binaryInstruction.slice(16, 32)));
+        //console.log('immediate ', binaryInstruction.slice(16, 32));
+        //console.log('immediate formated ', binaryToHex(binaryInstruction.slice(16, 32)));
         const immediate = binaryToHex(binaryInstruction.slice(16, 32));
         if (!rt || !rs || !immediate) return "Invalid Syntax";
         mipsInstruction += rs + " " + rt + " " + immediate;
@@ -427,6 +431,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Iterate over each hexadecimal instruction
         hexInstructions.forEach(instruction => {
             executeMIPSInstruction(instruction, registers, memory);
+            PC++;
+            console.log("PC ",PC);
         });
 
         // Display the final values of registers and memory
@@ -440,6 +446,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function executeMIPSInstruction(instruction, registers, memory) {
         // Split MIPS instruction into operation and operands
         const [op, ...operands] = instruction.split(' ');
+        //var a = translateInstructionToHex(instruction);
+        //console.log("instruction ",translateInstructionToMIPS(a));
         // Implement execution logic for each MIPS operation
         switch (op) {
             case 'add': {
@@ -473,8 +481,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
             }
             case 'lw': {
-                const [rt, rs, offset] = operands;
+                //const [rt, rs, offset] = operands;
+                const [rt, offset, rs] = operands;
                 const address = registers[rs] + parseInt(offset);
+                console.log('lw rt:', rt, 'rs', rs, 'offset', offset, 'address', address,'getting', registers[rt] );
                 //console.log('lw address:', address);
                 //console.log('lw memory value:', memory[address]);
                 if (memory.hasOwnProperty(address)) {
@@ -485,9 +495,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
             }
             case 'sw': {
-                const [rt, rs, offset] = operands;
+                //const [rt, rs, offset] = operands;
+                const [rt, offset, rs] = operands;
                 const address = registers[rs] + parseInt(offset);
-                //console.log('sw rt:', rt, 'rs', rs, 'offset', offset, 'address', address,'getting', registers[rt] );
+                console.log('sw rt:', rt, 'rs', rs, 'offset', offset, 'address', address,'getting', registers[rt] );
                 memory[address] = registers[rt];
                 break;
             }
@@ -542,7 +553,8 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Program finished');
             console.log('Final Registers:', registers);
             console.log('Final Memory:', memory);
-
+            //console.log('history ',history);
+            //console.log('hexinstrucions ',hexInstructions);
             // debugStepButton.disabled = true;
         }
 
