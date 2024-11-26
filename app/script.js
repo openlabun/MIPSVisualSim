@@ -1,5 +1,8 @@
 
 
+function toLowerCaseString(text){
+    return text.toLowerCase();
+  }
 
 
 function translateInstructionToHex(instruction) {
@@ -24,7 +27,7 @@ function translateInstructionToHex(instruction) {
         "t8": "11000", "t9": "11001", "k0": "11010", "k1": "11011",
         "gp": "11100", "sp": "11101", "fp": "11110", "ra": "11111"
     };
-
+    
     const parts = instruction.split(' ');
 
     const opcode = opcodeMap[parts[0]];
@@ -423,8 +426,8 @@ document.addEventListener('DOMContentLoaded', function () {
         simulationTables.scrollIntoView({ behavior: 'smooth' });
 
         // Get the value of the inputHex textarea and split it into instructions
-        const hexInstructions = mipsInput.value.trim().split('\n');
-
+        var mipsInputs = toLowerCaseString(mipsInput.value.replace(/\$/g, ''));
+        const hexInstructions = mipsInputs.trim().split('\n');
         // Initialize registers and memory
         resetMIPS();
 
@@ -533,7 +536,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         // Get the value of the inputHex textarea and split it into instructions
-        const hexInstructions = mipsInput.value.trim().split('\n');
+        // set to lower case and remove $ if found
+        var mipsInputs = toLowerCaseString(mipsInput.value.replace(/\$/g, ''));
+        const hexInstructions = mipsInputs.trim().split('\n');
 
         if (PC >= hexInstructions.length)
             return;

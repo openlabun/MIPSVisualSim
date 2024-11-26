@@ -1,4 +1,27 @@
-// volver mips a hexadecimal
+const regMap = {
+  "00000": "zero", "00001": "at", "00010": "v0", "00011": "v1",
+  "00100": "a0", "00101": "a1", "00110": "a2", "00111": "a3",
+  "01000": "t0", "01001": "t1", "01010": "t2", "01011": "t3",
+  "01100": "t4", "01101": "t5", "01110": "t6", "01111": "t7",
+  "10000": "s0", "10001": "s1", "10010": "s2", "10011": "s3",
+  "10100": "s4", "10101": "s5", "10110": "s6", "10111": "s7",
+  "11000": "t8", "11001": "t9", "11010": "k0", "11011": "k1",
+  "11100": "gp", "11101": "sp", "11110": "fp", "11111": "ra"
+};
+
+let memory = Array.from({ length: 32 }).reduce((acc, curr, i) => ({ ...acc, [i]: 0 }), {});
+
+registers = {
+  zero: 0, at: 0, v0: 0, v1: 0,
+  a0: 0, a1: 0, a2: 0, a3: 0,
+  t0: 0, t1: 0, t2: 0, t3: 0,
+  t4: 0, t5: 0, t6: 0, t7: 0,
+  s0: 0, s1: 0, s2: 0, s3: 0,
+  s4: 0, s5: 0, s6: 0, s7: 0,
+  t8: 0, t9: 0, k0: 0, k1: 0,
+  gp: 0, sp: 0, fp: 0, ra: 0
+};
+
 const instructionMap = {
     "add": { opcode: "000000", funct: "100000" },
     "sub": { opcode: "000000", funct: "100010" },
@@ -14,33 +37,101 @@ const instructionMap = {
     "jal": { opcode: "000011" }
   };
   
-  function getOpcode(name){
-    return instructionMap[name]?.opcode || 'unknown';
+// in binary
+var instructionParts = {
+  "opcode": null,
+  "rs": null,
+  "rs": null,
+  "rt": null,
+  "rd": null,
+  "funct": null,
+  "imm": null
+}
+
+// binary signals of Control Unit (CU)
+var controlUnit = {
+  "regdst" : null,
+  "regwrite": null,
+  "jump": null,
+  "beq": null,
+  "bne": null,
+  "alusrc": null,
+  "memtoreg": null,
+  "memread": null,
+  "memwrite": null,
+  "aluop1": null,
+  "aluop2": null,
+}
+
+// binary signals of RegUnit and ALU
+var ALURegUnitParts = {
+  "ra":null,
+  "rb":null,
+  "rw":null,
+  "busw":null,
+  "raData":null,
+  "rbData":null,
+  "rbDataALU":null,
+  "outALU":null,
+  "outputAluC":null
+}
+
+//
+function updateParts(new_parts){
+  for (const [key, value] of Object.entries(new_parts)) {
+    instructionParts[key] = new_parts[key];
   }
 
+}
 
-
-  function getFunctCode(name) {
-    return instructionMap[name]?.funct || 'unknown';
+//
+function resetParts() {
+  for (const [key, value] of Object.entries(instructionParts)) {
+    instructionParts[key] = null;
   }
+}
 
-  function convertOpCodeNameToCode(opcodeName) {
-    return getOpcode(opcodeName);
+//
+function resetControlUnit() {
+  for (const [key, value] of Object.entries(controlUnit)) {
+    controlUnit[key] = null;
   }
+}
 
-  function convertFunctToName(functBinary) {
-    const name = Object.keys(instructionMap).find(
-      key => instructionMap[key].funct === functBinary
-    );
-    return name || 'unknown';
+function resetALURegUnit() {
+  for (const [key, value] of Object.entries(ALURegUnitParts)) {
+    ALURegUnitParts[key] = null;
   }
+}
 
-  function convertOpcodeToName(opcodeBinary){
-    const name = Object.keys(instructionMap).find(
-      key => instructionMap[key].opcode === opcodeBinary
-    );
-    return name || 'unknown';
-  }
+
+function getOpcode(name){
+  return instructionMap[name]?.opcode || 'unknown';
+}
+
+
+
+function getFunctCode(name) {
+  return instructionMap[name]?.funct || 'unknown';
+}
+
+function convertOpCodeNameToCode(opcodeName) {
+  return getOpcode(opcodeName);
+}
+
+function convertFunctToName(functBinary) {
+  const name = Object.keys(instructionMap).find(
+    key => instructionMap[key].funct === functBinary
+  );
+  return name || 'unknown';
+}
+
+function convertOpcodeToName(opcodeBinary){
+  const name = Object.keys(instructionMap).find(
+    key => instructionMap[key].opcode === opcodeBinary
+  );
+  return name || 'unknown';
+}
 
   function convertRegisterToBinary(registerName){
     const binary = Object.keys(registerMap).find(key => registerMap[key] === registerName);
@@ -111,7 +202,7 @@ const instructionMap = {
     } else {
       return "Unsupported Instruction";
     }
-    console.log("binary ",binaryInstruction);
+    //console.log("binary ",binaryInstruction);
     const hexInstruction = parseInt(binaryInstruction, 2).toString(16).toUpperCase().padStart(8, '0');
     return hexInstruction;
   }
@@ -239,12 +330,12 @@ const instructionMap = {
     return formattedInstructions;
   }
 
-//replica compuerta logica NOT
+// replicates logical NOT gate
 function NOT(input) {
   return Number(input === 0 || input === '0');
 }
 
-// funciones señales Unidad de Control
+// functions that give signals of Control Unit
 function getRegdst(op){
   return NOT(op[2]) & NOT(op[3]) & NOT(op[4])
 }
@@ -289,47 +380,152 @@ function getAluop2(op){
   return op[3]
 }
 
+//salida de ALU de control
 function getControlALU(func,aluop1,aluop2){
   let left =  NOT(aluop1) | NOT(func[3])
   let right = (aluop1 || aluop2) & (aluop2 || func[4] || func[5])
   return String(left)+String(right)
 }
 
-// replica señales emitidas por unidad de control
+// control unit signals
 function executeControlUnit(opcode){
-  console.log("regdst ",getRegdst(opcode));
-  console.log("rewrite ",getRegwrite(opcode));
-  console.log("jump ",getJump(opcode));
-  console.log("beq ",getBeq(opcode));
-  console.log("bne ",getBne(opcode));
-  console.log("alusrc ",getAlusrc(opcode));
-  console.log("memtoreg ",getMemtoreg(opcode));
-  console.log("memread ",getMemRead(opcode));
-  console.log("memwrite ",getMemwrite(opcode));
-  console.log("aluop1 ",getAluop1(opcode));
-  console.log("aluop2 ",getAluop2(opcode));
+  controlUnit["regdst"] = getRegdst(opcode);
+  controlUnit["regwrite"] = getRegwrite(opcode);
+  controlUnit["jump"] = getJump(opcode);
+  controlUnit["beq"] = getBeq(opcode);
+  controlUnit["bne"] = getBne(opcode);
+  controlUnit["alusrc"] = getAlusrc(opcode);
+  controlUnit["memtoreg"] = getMemtoreg(opcode);
+  controlUnit["memread"] = getMemRead(opcode);
+  controlUnit["memwrite"] = getMemwrite(opcode);
+  controlUnit["aluop1"] = getAluop1(opcode);
+  controlUnit["aluop2"] = getAluop2(opcode);
 }
 
-// replica salida de ALU
-function getALU(salida,ra,rb){
+// replicates ALU signals
+function getALU(salida,raData,rbData){
   //10 suma, 11 resta, 00 and, 01 or
   switch(salida){
     case '10':
-      return String(Number(ra)+Number(rb));
+      return String(Number(raData)+Number(rbData));
     case '11':
-      return String(Number(ra)-Number(rb));
-    case '00':
-      return;
+      return String(Number(raData)-Number(rbData));
+    case '00': // and
+      return raData.split('').map((bit, index) => bit & rbData[index]).join('');
     case '01': //or
-      return;
+      return raData.split('').map((bit, index) => bit | rbData[index]).join('');
   }
 }
 
-instruction = 'j 0x01';
-opcode = getOpcode(instruction.split(' ')[0])
+//MUX of RegUnit to get RW
+function getMuxRegUnit(regdst,rt,rd){
+  if(regdst=='0'){
+    return rt;
+  }else{
+    return rd;
+  }
+}
 
-console.log(opcode);
+// MUX of ALU 
+function getMuxALU(alusrc,imm,rbData){
+  if(alusrc=='0'){
+    return rbData;  
+  }else{
+    return '0'.repeat(16)+imm; // extendido a 32
+  }
+}
 
-executeControlUnit(opcode);
+//MUX of Memory data: gives busW
+function getMUXMem(memtoreg,outALU,memoryData){
+  if(memtoreg=='0'){
+    return outALU;  
+  }else{
+    memoryData;
+  }
+}
 
-//console.log(getALU('10','00001','00100'));
+function getParts(binary){
+  instructionParts["opcode"] = binary.slice(0,6);
+  instructionParts["rs"] = binary.slice(6,11);
+  instructionParts["rt"] = binary.slice(11,16);
+  instructionParts["rd"] = binary.slice(16,21);
+  instructionParts["funct"] = binary.slice(25,31);
+  instructionParts["imm"] = binary.slice(16,32);
+  //console.log(instructionParts);
+}
+
+var PC = 0;
+//Parte 1: muestra PC e instruccion 
+function doPartOne(HexInstruction){
+  // recibe instruccion como HEX
+  console.log("PC ",PC);
+  console.log("Instruction Hex: ",HexInstruction);
+  
+}
+//Parte 2: descomponer
+function doPartTwo(binaryInstruction){
+  //obtener partes
+  getParts(binaryInstruction);
+  console.log(instructionParts);
+
+  //obtener señales unidad de control
+  console.log("Control Unit");
+  executeControlUnit(instructionParts["opcode"]);
+  console.log(controlUnit);
+
+  let rs = instructionParts["rs"];
+  let rt = instructionParts["rt"];
+  let rd = instructionParts["rd"];
+
+  // mux regunit 
+  ALURegUnitParts["rw"] = getMuxRegUnit(controlUnit["regdst"],rt,rd);
+  // unidad de registros
+  ALURegUnitParts["ra"] = rs;
+  ALURegUnitParts["rb"] = rt;
+
+  ALURegUnitParts["raData"] = registers[regMap[rs]];
+  ALURegUnitParts["rbData"] = registers[regMap[rt]];
+}
+
+// Parte 3
+function doPartThree(){
+  // ALU control output
+  console.log("RegUNit and ALU:")
+  ALURegUnitParts["outputAluC"] = getControlALU(instructionParts["funct"],
+              controlUnit["aluop1"],controlUnit["aluop2"]);
+
+  //mux alu: rbDataALU se opera con raData luego en ALU
+  ALURegUnitParts["rbDataALU"] = getMuxALU(controlUnit["alusrc"],
+              instructionParts["imm"],ALURegUnitParts["rbData"]);
+  //ALU
+  ALURegUnitParts["outALU"] = getALU(ALURegUnitParts["outputAluC"], ALURegUnitParts["raData"],
+              ALURegUnitParts["rbDataALU"]);
+  console.log(ALURegUnitParts);
+}
+
+
+// Parte 4
+function doPartFour(){
+ // memoria datos
+  memoryData = 
+ // mux escritura
+ ALURegUnitParts["busw"] = getMUXMem(controlUnit["memtoreg"],
+                          ALURegUnitParts["outALU"],memoryData
+ );
+ // escritura a regunit
+}
+
+
+instruction = 'addi t0 t0 0x01';
+//instruction = 'lw t0 0x01 t2';
+hexI = translateInstructionToHex(instruction);
+bin = hexToBinary(hexI);
+console.log(bin);
+getParts(bin);
+
+doPartOne(hexI);
+doPartTwo(bin);
+doPartThree(); 
+ 
+
+console.log(memory); 
