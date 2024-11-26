@@ -619,3 +619,54 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         translateInstructionToHex
     };
 }
+
+let executionSteps = []; // Almacena los pasos de la simulación
+
+function logStep(step, description) {
+    executionSteps.push({ step, description });
+}
+
+function resetExecutionSteps() {
+    executionSteps = [];
+}
+
+function showExecutionSteps() {
+    const table = document.getElementById('executionTable');
+    if (!table) return;
+
+    // Limpiar la tabla
+    table.innerHTML = '<tr><th>Step</th><th>Description</th></tr>';
+
+    // Llenar la tabla con pasos
+    executionSteps.forEach(({ step, description }) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${step}</td><td>${description}</td>`;
+        table.appendChild(row);
+    });
+}
+
+function simulateStepByStep() {
+    resetExecutionSteps(); // Reiniciar pasos previos
+
+    const input = document.getElementById("mips-input").value.trim();
+    if (!input) {
+        alert("Please enter at least one valid MIPS instruction.");
+        return;
+    }
+
+    const instructions = input.split('\n'); // Separar por líneas
+
+    let globalStep = 1; // Contador de pasos global
+
+    instructions.forEach((instruction, index) => {
+        logStep(globalStep++, `Iniciando instrucción ${index + 1}: "${instruction}"`);
+        logStep(globalStep++, "Estoy en el decodificador: Decodificando la instrucción.");
+        logStep(globalStep++, "Estoy en el controlador de la ALU: Preparando los operandos para la operación.");
+        logStep(globalStep++, "Estoy en la ALU: Realizando la operación aritmética.");
+        logStep(globalStep++, "Estoy en los registros: Actualizando los valores de los registros.");
+        logStep(globalStep++, `La instrucción ${index + 1} ha sido completada.`);
+    });
+
+    // Mostrar los pasos en la tabla
+    showExecutionSteps();
+}
