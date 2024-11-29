@@ -1,4 +1,3 @@
-
 function translateInstructionToHex(instruction) {
     const opcodeMap = {
         "add": "000000", "sub": "000000", "slt": "000000", "and": "000000", "or": "000000",
@@ -219,7 +218,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+    const processFileButton = document.getElementById('process-file-button');
+    processFileButton.addEventListener('click', function() {
+        fileInput.click(); // Esto abrirá el diálogo de selección de archivos
+    });
 
+    // Agregar el event listener para cuando se seleccione un archivo
+    fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files.length > 0) {
+            processFiles(files);
+        }
+    }); 
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, false);
@@ -259,9 +269,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to handle dropped files
     function handleDrop(e) {
-        const dt = e.dataTransfer;
+        const dt = e.dataTransfer || { files: e.target.files };
         const files = dt.files;
-
         processFiles(files);
     }
 
@@ -281,29 +290,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
         reader.onload = function (event) {
             const fileContent = event.target.result;
-            const lines = fileContent.trim().split('\n');
+            // Dividir el contenido en líneas y eliminar líneas vacías
+            const lines = fileContent.split('\n').filter(line => line.trim());
 
-            // If there are less than two lines, return because the file is not formatted as expected
-            if (lines.length < 2) {
-                console.error("Invalid file format. Expected at least two lines.");
-                return;
-            }
-
-            // Split the second line by spaces to get individual instructions
-            const instructionsArray = lines[1].trim().split(/\s+/);
-
-            // Translate each instruction and build the translated instructions for input textarea
+            // Traducir cada instrucción y construir las instrucciones traducidas
             let translatedInstructions = '';
             let originalInstructions = '';
-            instructionsArray.forEach(instruction => {
-                const translated = translateInstructionToMIPS(instruction.trim());
-                translatedInstructions += `${translated}\n`;
-                originalInstructions += `${instruction.trim()}\n`;
+
+            lines.forEach(line => {
+                const instruction = line.trim();
+                if (instruction) {
+                    // Convertir la instrucción MIPS a hexadecimal
+                    const hexInstruction = translateInstructionToHex(instruction);
+                    if (hexInstruction !== "Unknown Instruction" && hexInstruction !== "Invalid Syntax") {
+                        originalInstructions += `${instruction}\n`;
+                        translatedInstructions += `${hexInstruction}\n`;
+                    }
+                }
             });
 
-            // Set the value of input textarea with translated instructions
-            mipsInput.value = translatedInstructions.trim();
-            hexInput.value = originalInstructions.trim();
+            // Establecer el valor de los textareas
+            mipsInput.value = originalInstructions.trim();
+            hexInput.value = translatedInstructions.trim();
+
+            console.log("Instrucciones originales:", originalInstructions);
+            console.log("Instrucciones en hexadecimal:", translatedInstructions);
         };
 
         reader.readAsText(files[0]);
