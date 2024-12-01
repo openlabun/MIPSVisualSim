@@ -3,7 +3,7 @@ function translateInstructionToHex(instruction) {
         "add": "000000", "sub": "000000", "slt": "000000", "and": "000000", "or": "000000",
         "addi": "001000", "lw": "100011", "sw": "101011",
         "beq": "000100", "bne": "000101",
-        "j": "000010"
+        "j": "000010", "slti": "001010", "andi": "001100", "ori": "001101"
     };
 
     const funcMap = {
@@ -80,7 +80,7 @@ function translateInstructionToMIPS(hexInstruction) {
         "000000": "add", "000000": "sub", "000000": "slt", "000000": "and", "000000": "or",
         "001000": "addi", "100011": "lw", "101011": "sw",
         "000100": "beq", "000101": "bne",
-        "000010": "j"
+        "000010": "j", "slti": "001010", "andi": "001100", "ori": "001101"
     };
 
     const funcMap = {
@@ -448,57 +448,132 @@ document.addEventListener('DOMContentLoaded', function () {
         updateTables(registers, memory);
     }
 
+    function eventVisible(instruction) {
+        const [op, ...operands] = instruction.split(' ');
+        if (op === 'add' || op === 'sub' || op === 'and' || op === 'or' || op=== 'slt') {
+            // Access the SVG element
+            var svgObject = document.querySelector('object[type="image/svg+xml"]');
+            if (svgObject) {
+                var svgDoc = svgObject.contentDocument;
+                var PCElement = svgDoc.getElementById('PC');
+                var instructionMem = svgDoc.getElementById('InsMem');
+                var Registers = svgDoc.getElementById('Registers');
+                var AluCont = svgDoc.getElementById('AluCont');
+                var Alu = svgDoc.getElementById('Alu');
+                var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
+            
+            } else if (op == "addi" || op == "andi" || op == "ori" || op == "slti") {
+                // Access the SVG element
+                var svgObject = document.querySelector('object[type="image/svg+xml"]');
+                if (svgObject) {
+                    var svgDoc = svgObject.contentDocument;
+                    var PCElement = svgDoc.getElementById('PC');
+                    var instructionMem = svgDoc.getElementById('InsMem');
+                    var Registers = svgDoc.getElementById('Registers');
+                    var AluCont = svgDoc.getElementById('AluCont');
+                    var Alu = svgDoc.getElementById('Alu');
+                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
+                    var muxRegdst = svgDoc.getElementById('muxRegDst');
+                } else if (op == "lw") {
+                    var svgDoc = svgObject.contentDocument;
+                    var PCElement = svgDoc.getElementById('PC');
+                    var instructionMem = svgDoc.getElementById('InsMem');
+                    var Registers = svgDoc.getElementById('Registers');
+                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
+                    var DataMem = svgDoc.getElementById('DataMem');
+                } else if (op == "sw") {
+                    var svgDoc = svgObject.contentDocument;
+                    var PCElement = svgDoc.getElementById('PC');
+                    var instructionMem = svgDoc.getElementById('InsMem');
+                    var Registers = svgDoc.getElementById('Registers');
+                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
+                    var DataMem = svgDoc.getElementById('DataMem');
+                    var Alu = svgDoc.getElementById('Alu');
+                } else if (op == "beq" || op == "bne") {
+                    var svgDoc = svgObject.contentDocument;
+                    var PCElement = svgDoc.getElementById('PC');
+                    var Registers = svgDoc.getElementById('Registers');
+                    var Alu = svgDoc.getElementById('Alu');
+                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
+                    var muxBranch = svgDoc.getElementById('muxBranch');
+                } else if (op == "j") {
+                    var svgDoc = svgObject.contentDocument;
+                    var PCElement = svgDoc.getElementById('PC');
+                    var instructionMem = svgDoc.getElementById('InsMem');
+                    var muxPC = svgDoc.getElementById('muxPC');
+                }
+
+            }
+            else {
+                console.error('SVG object not found.');
+            }
+        }
+        return false;
+    }
+    
+
     function executeMIPSInstruction(instruction, registers, memory) {
         // Split MIPS instruction into operation and operands
         const [op, ...operands] = instruction.split(' ');
         // Implement execution logic for each MIPS operation
         switch (op) {
             case 'add': {
+                eventVisible(instruction);
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] + registers[rt];
                 break;
             }
             case 'sub': {
+                eventVisible(instruction);
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] - registers[rt];
                 break;
             }
             case 'slt': {
+                eventVisible(instruction);
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] < registers[rt] ? 1 : 0;
                 break;
             }
             case 'and': {
+                eventVisible(instruction);
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] & registers[rt];
                 break;
             }
             case 'or': {
+                eventVisible(instruction);
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] | registers[rt];
                 break;
             }
             case 'addi': {
+                eventVisible(instruction);
                 const [rd, rs, immediate] = operands;
                 registers[rd] = registers[rs] + parseInt(immediate);
                 break;
             }
             case 'andi': {
+                eventVisible(instruction);
                 const [rd, rs, immediate] = operands;
                 registers[rd] = registers[rs] & parseInt(immediate);
                 break;
             }
             case 'ori': {
+                eventVisible(instruction);
                 const [rd, rs, immediate] = operands;
                 registers[rd] = registers[rs] | parseInt(immediate);
                 break;
             }
             case 'slti': {
+                console.log("slti");
+                eventVisible(instruction);
                 const [rd, rs, immediate] = operands;
                 registers[rd] = registers[rs] < parseInt(immediate) ? 1 : 0;
                 break;
             }
             case 'lw': {
+                eventVisible(instruction);
                 const [rt, rs, offset] = operands;
                 const address = registers[rs] + parseInt(offset);
                 if (memory.hasOwnProperty(address)) {
@@ -509,12 +584,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
             }
             case 'sw': {
+                eventVisible(instruction);
                 const [rt, rs, offset] = operands;
                 const address = registers[rs] + parseInt(offset);
                 memory[address] = registers[rt];
                 break;
             }
             case 'j': {
+                eventVisible(instruction);
                 const [address] = operands;
                 console.log(PC)
                 PC = parseInt(address) -1 ; // -1 because the PC will be incremented after the instruction is executed
@@ -522,16 +599,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
             }
             case 'beq': {
+                eventVisible(instruction);
                 const [rs, rt, offset] = operands;
                 if (registers[rs] === registers[rt]) {
-                    PC += parseInt(offset);
+                    PC += parseInt(offset)-1;
                 }
                 break;
             }
             case 'bne': {
+                eventVisible(instruction);
                 const [rs, rt, offset] = operands;
                 if (registers[rs] !== registers[rt]) {
-                    PC += parseInt(offset);
+                    PC += parseInt(offset)-1;
                 }
                 break;
             }
