@@ -113,12 +113,189 @@ button:hover {
 }
 
 /* Datapath Visualization */
+.datapath-visualization {
+    flex: 1;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 10px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
 .datapath {
     width: 100%;
     height: 400px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background-color: white;
+    padding: 1rem;
+}
+
+.datapath svg {
+    width: 100%;
+    height: 100%;
+}
+
+.datapath svg text {
+    font-size: 12px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.datapath svg path,
+.datapath svg line {
+    transition: all 0.3s ease;
+}
+
+.datapath svg rect,
+.datapath svg path {
+    transition: fill 0.3s ease;
+}
+
+.datapath-component {
+    cursor: pointer;
+}
+
+.datapath-component:hover rect,
+.datapath-component:hover path {
+    fill: #E3F2FD;
+}
+
+.datapath-signal {
+    pointer-events: none;
+}
+
+.highlight-animation {
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+/* Signal and component styling */
+.signal-path {
+    stroke: #2196F3;
+    stroke-width: 2;
+    transition: stroke 0.3s ease-in-out, stroke-width 0.3s ease-in-out;
+}
+
+.signal-highlight {
+    stroke: #1565C0;
+    stroke-width: 3;
+}
+
+.signal-highlight.animated {
+    stroke-dasharray: var(--length);
+    animation: flowSignal 0.8s ease-in-out forwards;
+}
+
+/* Hide arrowhead during animation */
+.signal-highlight.animated marker {
+    opacity: 0;
+}
+
+/* Show arrowhead after animation completes */
+.signal-highlight.animated.completed marker {
+    opacity: 1;
+    transition: opacity 0.2s ease-in;
+}
+
+@keyframes flowSignal {
+    0% {
+        stroke-dashoffset: var(--length);
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Component styling */
+.component-text {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    user-select: none;
+}
+
+.highlight-component {
+    transition: fill 0.3s ease-in-out, stroke-width 0.3s ease-in-out;
+}
+
+/* SVG container styling */
+#datapath-container {
+    flex: 1;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin: 20px 0;
+    padding: 20px;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+#datapath-container svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Signal path styling */
+.signal-path {
+    transition: stroke 0.3s ease-in-out, stroke-width 0.3s ease-in-out;
+}
+
+.signal-path:hover {
+    stroke: #1565C0;
+    stroke-width: 3;
+}
+
+/* Component text styling */
+text {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Animation for signal flow */
+@keyframes flowSignal {
+    from {
+        stroke-dashoffset: var(--length);
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.signal-highlight {
+    stroke: #1565C0;
+    stroke-width: 3;
+}
+
+.signal-highlight.animated {
+    stroke-dasharray: var(--length);
+    animation: flowSignal 0.8s ease-in-out forwards;
+}
+
+/* Hide arrowhead during animation */
+.signal-highlight.animated marker {
+    opacity: 0;
+}
+
+/* Show arrowhead after animation completes */
+.signal-highlight.animated.completed marker {
+    opacity: 1;
+    transition: opacity 0.2s ease-in;
 }
 
 /* Execution Status */
@@ -141,18 +318,53 @@ button:hover {
 }
 
 /* Register View */
+.register-view {
+    background: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
 .register-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
 }
 
 .register-item {
-    background-color: var(--highlight-color);
+    background: white;
     padding: 0.5rem;
     border-radius: 4px;
+    border: 1px solid #e0e0e0;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    font-family: 'Consolas', monospace;
+}
+
+.register-name {
+    color: #2196F3;
+    font-weight: bold;
+}
+
+.register-value {
+    color: #333;
+    background: #f8f8f8;
+    padding: 0.25rem 0.5rem;
+    border-radius: 2px;
+    border: 1px solid #e0e0e0;
+}
+
+.register-item:hover {
+    border-color: #2196F3;
+    box-shadow: 0 0 0 1px #2196F3;
+}
+
+.register-item:hover .register-value {
+    background: #fff;
 }
 
 /* Memory View */

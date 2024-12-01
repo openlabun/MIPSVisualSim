@@ -18,54 +18,125 @@ let memory = {};
 
 // MIPS Datapath Visualization
 class DatapathVisualizer {
-    constructor(containerId) {
-        this.container = document.getElementById(containerId);
-        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        this.svg.setAttribute("width", "100%");
-        this.svg.setAttribute("height", "100%");
-        this.svg.setAttribute("viewBox", "0 0 800 400");
-        this.container.appendChild(this.svg);
+    constructor(svgElement) {
+        this.svg = svgElement;
         this.components = {};
         this.signals = {};
+        
+        // Define component colors
+        this.componentColors = {
+            MUX: '#FF9800',      // Orange for multiplexers
+            PC: '#4CAF50',       // Green for PC
+            ADDER: '#2196F3',    // Blue for adders
+            InstrMem: '#9C27B0', // Purple for instruction memory
+            Registers: '#E91E63', // Pink for registers
+            ALU: '#00BCD4',      // Cyan for ALU
+            DataMem: '#9C27B0',  // Purple for data memory
+            Constant: '#607D8B'   // Blue grey for constant
+        };
+
+        // Create arrowhead marker definition
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+        marker.setAttribute("id", "arrowhead");
+        marker.setAttribute("markerWidth", "10");
+        marker.setAttribute("markerHeight", "7");
+        marker.setAttribute("refX", "9");
+        marker.setAttribute("refY", "3.5");
+        marker.setAttribute("orient", "auto");
+        marker.setAttribute("fill", "#2196F3");
+        
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
+        
+        marker.appendChild(polygon);
+        defs.appendChild(marker);
+        this.svg.appendChild(defs);
+
+        // Initialize the datapath
         this.initializeDatapath();
     }
 
     initializeDatapath() {
-        // Create basic MIPS components
-        this.createComponent("PC", 50, 100, 60, 40);
-        this.createComponent("InstrMem", 150, 100, 80, 60);
-        this.createComponent("Registers", 300, 100, 100, 80);
-        this.createComponent("ALU", 450, 100, 70, 70);
-        this.createComponent("DataMem", 600, 100, 80, 60);
-        this.createComponent("Control", 300, 20, 100, 40);
+        const mainPathY = 150;  // Main horizontal path Y position
+        const spacing = 100;    // Increased spacing between components
 
-        // Create connections
+        // Create components with better spacing
+        this.createMux("MUX1", 100, mainPathY);
+        this.createComponent("PC", 220, mainPathY, 60, 40);
+        this.createComponent("InstrMem", 340, mainPathY, 80, 80);
+        this.createComponent("Registers", 480, mainPathY, 100, 80);
+        this.createMux("MUX2", 600, mainPathY);
+        this.createComponent("ALU", 720, mainPathY, 80, 80);
+        this.createComponent("DataMem", 840, mainPathY, 80, 80);
+        this.createMux("MUX3", 960, mainPathY);
+
+        // Create adders and constant with adjusted positions
+        this.createAdder("ADDER1", 220, mainPathY - 80);  // Above PC
+        this.createAdder("ADDER2", 220, mainPathY + 80);  // Below PC
+        this.createComponent("Constant", 340, mainPathY + 80, 40, 40);
+
+        // Create signals in the correct order
+        // Main datapath
+        this.createSignal("MUX1-PC", "MUX1", "PC");
         this.createSignal("PC-InstrMem", "PC", "InstrMem");
         this.createSignal("InstrMem-Registers", "InstrMem", "Registers");
-        this.createSignal("Registers-ALU", "Registers", "ALU");
+        this.createSignal("Registers-MUX2", "Registers", "MUX2");
+        this.createSignal("MUX2-ALU", "MUX2", "ALU");
         this.createSignal("ALU-DataMem", "ALU", "DataMem");
+        this.createSignal("DataMem-MUX3", "DataMem", "MUX3");
+
+        // PC to ADDER1 and ADDER2
+        this.createSignal("PC-ADDER1", "PC", "ADDER1", false, true);
+        this.createSignal("PC-ADDER2", "PC", "ADDER2", false, true);
+
+        // Constant to ADDER2
+        this.createSignal("Constant-ADDER2", "Constant", "ADDER2");
+
+        // Feedback paths
+        this.createSignal("ADDER1-MUX1", "ADDER1", "MUX1", true);
+        this.createSignal("ADDER2-MUX1", "ADDER2", "MUX1", true);
+
+        // Additional control signals
+        this.createSignal("InstrMem-MUX2", "InstrMem", "MUX2", false, true);
+        this.createSignal("Registers-ALU", "Registers", "ALU", false, true);
+        this.createSignal("ALU-MUX3", "ALU", "MUX3", false, true);
+    }
+
+    getComponentColor(name) {
+        if (name.startsWith('MUX')) return this.componentColors.MUX;
+        if (name.startsWith('ADDER')) return this.componentColors.ADDER;
+        if (name === 'PC') return this.componentColors.PC;
+        if (name === 'InstrMem') return this.componentColors.InstrMem;
+        if (name === 'Registers') return this.componentColors.Registers;
+        if (name === 'ALU') return this.componentColors.ALU;
+        if (name === 'DataMem') return this.componentColors.DataMem;
+        if (name === 'Constant') return this.componentColors.Constant;
+        return '#2196F3'; // Default color
     }
 
     createComponent(name, x, y, width, height) {
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${x},${y})`);
         
-        // Create rectangle
         const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", x);
-        rect.setAttribute("y", y);
         rect.setAttribute("width", width);
         rect.setAttribute("height", height);
-        rect.setAttribute("fill", "white");
-        rect.setAttribute("stroke", "#2196F3");
+        rect.setAttribute("x", -width/2);
+        rect.setAttribute("y", -height/2);
+        rect.setAttribute("rx", "5");
+        rect.setAttribute("ry", "5");
+        rect.setAttribute("fill", this.getComponentColor(name));
+        rect.setAttribute("stroke", "white");
         rect.setAttribute("stroke-width", "2");
         
-        // Create text label
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", x + width/2);
-        text.setAttribute("y", y + height/2);
+        text.setAttribute("x", "0");
+        text.setAttribute("y", "0");
         text.setAttribute("text-anchor", "middle");
         text.setAttribute("dominant-baseline", "middle");
-        text.setAttribute("fill", "#333");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "14px");
         text.textContent = name;
         
         group.appendChild(rect);
@@ -81,40 +152,177 @@ class DatapathVisualizer {
         };
     }
 
-    createSignal(id, from, to) {
-        const fromComp = this.components[from];
-        const toComp = this.components[to];
+    createMux(name, x, y) {
+        const width = 40;
+        const height = 60;
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${x},${y})`);
         
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", fromComp.x + fromComp.width);
-        line.setAttribute("y1", fromComp.y + fromComp.height/2);
-        line.setAttribute("x2", toComp.x);
-        line.setAttribute("y2", toComp.y + toComp.height/2);
-        line.setAttribute("stroke", "#607D8B");
-        line.setAttribute("stroke-width", "2");
+        // Create trapezoid shape for multiplexer
+        const points = [
+            [-width/2, -height/2],  // Top left
+            [width/2, -height/3],   // Top right
+            [width/2, height/3],    // Bottom right
+            [-width/2, height/2]    // Bottom left
+        ].map(point => point.join(',')).join(' ');
         
-        this.svg.insertBefore(line, this.svg.firstChild);
-        this.signals[id] = line;
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", points);
+        polygon.setAttribute("fill", this.getComponentColor("MUX"));
+        polygon.setAttribute("stroke", "white");
+        polygon.setAttribute("stroke-width", "2");
+        
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", "0");
+        text.setAttribute("y", "0");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "14px");
+        text.textContent = name;
+        
+        group.appendChild(polygon);
+        group.appendChild(text);
+        this.svg.appendChild(group);
+        
+        this.components[name] = {
+            element: group,
+            x: x,
+            y: y,
+            width: width,
+            height: height
+        };
     }
 
-    highlightComponent(name) {
+    createAdder(name, x, y) {
+        const radius = 25;
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${x},${y})`);
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", radius);
+        circle.setAttribute("fill", this.getComponentColor("ADDER"));
+        circle.setAttribute("stroke", "white");
+        circle.setAttribute("stroke-width", "2");
+        
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", "0");
+        text.setAttribute("y", "-5");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "14px");
+        text.textContent = name;
+        
+        const plus = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        plus.setAttribute("x", "0");
+        plus.setAttribute("y", "10");
+        plus.setAttribute("text-anchor", "middle");
+        plus.setAttribute("dominant-baseline", "middle");
+        plus.setAttribute("fill", "white");
+        plus.setAttribute("font-size", "18px");
+        plus.setAttribute("font-weight", "bold");
+        plus.textContent = "+";
+        
+        group.appendChild(circle);
+        group.appendChild(text);
+        group.appendChild(plus);
+        this.svg.appendChild(group);
+        
+        this.components[name] = {
+            element: group,
+            x: x,
+            y: y,
+            width: radius * 2,
+            height: radius * 2
+        };
+    }
+
+    createSignal(id, from, to, isFeedback = false, isSecondInput = false) {
+        const fromComp = this.components[from];
+        const toComp = this.components[to];
+        if (!fromComp || !toComp) return;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("class", "signal-path");
+        path.setAttribute("stroke", "#2196F3");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("fill", "none");
+        path.setAttribute("marker-end", "url(#arrowhead)");
+
+        // Calculate connection points
+        let startX, startY, endX, endY;
+        
+        // Output point (from)
+        startX = fromComp.x + fromComp.width/2;
+        startY = fromComp.y;
+
+        // Input point (to)
+        if (isSecondInput) {
+            // Connect to bottom for second input
+            endX = toComp.x;
+            endY = toComp.y + toComp.height/2;
+        } else {
+            // Connect to left side for first input
+            endX = toComp.x - toComp.width/2;
+            endY = toComp.y;
+        }
+
+        // Generate path data
+        let d;
+        if (isFeedback) {
+            // Feedback paths go around the top
+            const midY = Math.min(fromComp.y, toComp.y) - 50;
+            d = `M ${startX} ${startY} 
+                 L ${startX} ${midY} 
+                 L ${endX} ${midY} 
+                 L ${endX} ${endY}`;
+        } else if (isSecondInput) {
+            // Second inputs come from below
+            const midX = (startX + endX) / 2;
+            const bottomOffset = 30;
+            d = `M ${startX} ${startY} 
+                 L ${startX} ${endY + bottomOffset} 
+                 L ${endX} ${endY + bottomOffset} 
+                 L ${endX} ${endY}`;
+        } else {
+            // Standard horizontal connection with vertical segments as needed
+            const midX = (startX + endX) / 2;
+            d = `M ${startX} ${startY} 
+                 L ${midX} ${startY} 
+                 L ${midX} ${endY} 
+                 L ${endX} ${endY}`;
+        }
+
+        path.setAttribute("d", d);
+        this.svg.insertBefore(path, this.svg.firstChild); // Place signals behind components
+        this.signals[id] = path;
+    }
+
+    highlightComponent(name, duration = 800) {
         const component = this.components[name];
         if (component) {
-            const rect = component.element.querySelector("rect");
+            const rect = component.element.querySelector("rect, polygon, circle");
             rect.setAttribute("fill", "#E3F2FD");
-            setTimeout(() => rect.setAttribute("fill", "white"), 1000);
+            rect.setAttribute("class", "highlight-component");
+            
+            setTimeout(() => {
+                rect.setAttribute("fill", this.getComponentColor(name));
+                rect.removeAttribute("class");
+            }, duration);
         }
     }
 
-    highlightSignal(id) {
+    highlightSignal(id, duration = 800) {
         const signal = this.signals[id];
         if (signal) {
-            signal.setAttribute("stroke", "#2196F3");
-            signal.setAttribute("stroke-width", "3");
+            signal.setAttribute("class", "signal-highlight animated");
+            const length = signal.getTotalLength();
+            signal.style.setProperty('--length', `${length}px`);
+            
             setTimeout(() => {
-                signal.setAttribute("stroke", "#607D8B");
-                signal.setAttribute("stroke-width", "2");
-            }, 1000);
+                signal.setAttribute("class", "signal-path");
+            }, duration);
         }
     }
 }
@@ -123,43 +331,46 @@ class DatapathVisualizer {
 class RegisterVisualizer {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
-        this.createRegisterGrid();
+        if (!this.container) {
+            console.error('Register container not found:', containerId);
+            return;
+        }
+        this.initializeRegisters();
     }
 
-    createRegisterGrid() {
-        const registerNames = [
-            'zero', 'at', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3',
-            't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7',
-            's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7',
-            't8', 't9', 'k0', 'k1', 'gp', 'sp', 'fp', 'ra'
-        ];
+    initializeRegisters() {
+        // Clear existing content
+        this.container.innerHTML = '';
 
-        registerNames.forEach(name => {
-            const regDiv = document.createElement('div');
-            regDiv.className = 'register-item';
-            regDiv.innerHTML = `
-                <span class="register-name">${name}</span>
-                <span class="register-value" id="reg-${name}">0x00000000</span>
-            `;
-            this.container.appendChild(regDiv);
+        // Create register elements
+        Object.keys(registers).forEach(reg => {
+            const regItem = document.createElement('div');
+            regItem.className = 'register-item';
+            
+            const regName = document.createElement('span');
+            regName.className = 'register-name';
+            regName.textContent = `$${reg}`;
+            
+            const regValue = document.createElement('span');
+            regValue.className = 'register-value';
+            regValue.id = `reg-${reg}`;
+            regValue.textContent = '0x00000000';
+            
+            regItem.appendChild(regName);
+            regItem.appendChild(regValue);
+            this.container.appendChild(regItem);
         });
     }
 
     update(registers) {
-        Object.entries(registers).forEach(([name, value]) => {
-            const valueElement = document.getElementById(`reg-${name}`);
-            if (valueElement) {
-                valueElement.textContent = `0x${value.toString(16).padStart(8, '0')}`;
+        Object.entries(registers).forEach(([reg, value]) => {
+            const element = document.getElementById(`reg-${reg}`);
+            if (element) {
+                // Format value as 8-digit hexadecimal
+                const hexValue = (value >>> 0).toString(16).padStart(8, '0');
+                element.textContent = `0x${hexValue}`;
             }
         });
-    }
-
-    highlight(register) {
-        const regElement = document.getElementById(`reg-${register}`);
-        if (regElement) {
-            regElement.classList.add('highlight');
-            setTimeout(() => regElement.classList.remove('highlight'), 1000);
-        }
     }
 }
 
@@ -290,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing simulator...');
     
     // Initialize visualizers
-    datapathViz = new DatapathVisualizer('datapath-container');
+    datapathViz = new DatapathVisualizer(document.getElementById('datapath-container'));
     registerViz = new RegisterVisualizer('register-container');
     memoryViz = new MemoryVisualizer('memory-container');
     
@@ -366,6 +577,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial reset
     resetSimulation();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const svgElement = document.querySelector('#datapath-container svg');
+    if (svgElement) {
+        window.datapathVisualizer = new DatapathVisualizer(svgElement);
+    } else {
+        console.error('SVG element not found');
+    }
 });
 
 function runSimulation() {
@@ -538,7 +758,7 @@ function highlightDatapath(instruction) {
     
     // Reset previous highlights
     datapathViz.highlightComponent('PC');
-    datapathViz.highlightSignal('PC-InstrMem');
+    datapathViz.highlightSignal('PC-MUX1');
     
     // Highlight components based on instruction type
     if (['lw', 'sw'].includes(op)) {
