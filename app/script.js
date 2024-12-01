@@ -433,10 +433,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Iterate over each hexadecimal instruction
         hexInstructions.forEach(instruction => {
-            executeMIPSInstruction(instruction, registers, memory);
-            PC++;
-            console.log("PC ",PC);
-        });
+            if (PC < hexInstructions.length) {
+                executeMIPSInstruction(instruction, registers, memory);
+                PC++;  // Increment PC after each instruction, unless modified by branch or jump
+                console.log("PC updated to:", PC);
+            }
+        })
 
         // Display the final values of registers and memory
         console.log('Final Registers:', registers);
@@ -505,6 +507,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 memory[address] = registers[rt];
                 break;
             }
+            case 'j': {
+                const jumpLine = parseInt(operands[0], 16);  
+                stack.push(PC + 1);  
+                PC = jumpLine-1;
+                break;
+            }
+            case 'bne': {
+                const [rs, rt, offset] = operands;
+                if (registers[rs] !== registers[rt]) {
+                    const branchOffset = parseInt(offset, 16);  
+                    PC += branchOffset; 
+                }
+                break;
+            }
+            case 'beq': {
+                const [rs, rt, offset] = operands;
+                if (registers[rs] === registers[rt]) {
+                    const branchOffset = parseInt(offset, 16);
+                    PC += branchOffset;  
+                }
+                break;
+            }
             // Add cases for other MIPS operations
             default: {
                 console.error('Unsupported operation:', op);
@@ -530,6 +554,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // TODO: DEACTIVATE THE DEBUGGER WHEN COMPLETE THE SIMULATION, SINCE IT DOES NOT USE THE PROGRAM COUNTER
     let PC = 0;
     const history = [];
+    let stack = [];
     updateDebuggerInfo();
 
     function stepMIPS() {
