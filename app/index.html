@@ -1,262 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIPS Visual Simulator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <h1>MIPS Visual Simulator</h1>
-    <div class="container">
-        <div class="input-container">
-            <textarea class="textarea" id="mips-input" placeholder="Enter MIPS instructions here..."></textarea>
-        </div>
-
-        <div class="button-container">
-           
-            <div id="dropArea">
-                <p>Drag and drop a RAM file here, or click to select one.</p>
-                <input type="file" id="fileInput" style="display: none;">
-                <button id="process-file-button">Process File</button>
-            </div>
-            <button id="simulate-mips-button">Simulate MIPS</button>
-        </div>
-        <div id="simulation-tables" class="button-container">
-            <div class="table-container">
-                <h2>RAM</h2>
-                <table id="ramTable">
-                    <tr>
-                        <th>Address</th>
-                        <th>Value</th>
-                    </tr>
-                    <tr>
-                        <td>0x00</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x01</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x02</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x03</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x04</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x05</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x06</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x07</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x08</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x09</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0A</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0B</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0C</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0D</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0E</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0F</td>
-                        <td>0x00</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div id="debugger">
-                <h2>Debugger</h2>
-                <div class="debugger-container">
-                    <div class="debugger-buttons">
-                      <button class="debugger-button" id="dg-reset-button">🔃</button>
-                      <button class="debugger-button" id="dg-run-button">▶️</button>
-                        <button class="debugger-button" id="dg-step-in-button">⤵️</button>
-                        <button class="debugger-button" id="dg-step-over-button">⬆️</button>
-                    </div>
-                    <div class="debugger-info" id="debugger-info">
-                        <p>Program Counter: </p>
-                        <p>Current Instruction: </p>
-                        <p>Previous Instruction: </p>
-                    </div>
+    <div class="header">
+        <h1>MIPS Visual Simulator</h1>
+    </div>
+    
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="code-editor">
+                <h2>MIPS Code</h2>
+                <textarea id="mips-input" placeholder="Enter MIPS instructions here..."></textarea>
+                <div class="button-group">
+                    <button id="simulate-mips-button" class="primary-button">Run</button>
+                    <button id="step-button" class="secondary-button">Step</button>
+                    <button id="reset-button" class="secondary-button">Reset</button>
                 </div>
             </div>
             
-            <div  class="table-container">
-            <h2>Registers</h2>
-            <table id="registerTable">
-                <tr>
-                    <th>Register</th>
-                    <th>Value</th>
-                </tr>
-                <tr>
-                    <td>zero</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>at</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>v0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>v1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a2</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a3</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t2</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t3</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t4</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t5</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t6</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t7</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s2</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s3</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s4</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s5</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s6</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s7</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t8</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t9</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>k0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>k1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>gp</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>sp</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>fp</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>ra</td>
-                    <td>0x00</td>
-                </tr>
-           
-            </table>
+            <div class="memory-input">
+                <h2>Memory Input</h2>
+                <div id="dropArea" class="drop-area">
+                    <p>Drag and drop a RAM file here, or click to select one</p>
+                    <input type="file" id="fileInput" accept=".mem,.txt">
+                    <button id="process-file-button">Load Memory</button>
+                </div>
+            </div>
         </div>
+
+        <div class="center-panel">
+            <div class="datapath-visualization">
+                <h2>MIPS Datapath</h2>
+                <div id="datapath-container" class="datapath">
+                    <!-- SVG datapath will be inserted here by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="execution-status">
+                <h2>Current Execution</h2>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <label>Current Instruction:</label>
+                        <span id="current-instruction">-</span>
+                    </div>
+                    <div class="status-item">
+                        <label>PC:</label>
+                        <span id="pc-value">0x00000000</span>
+                    </div>
+                    <div class="status-item">
+                        <label>ALU Result:</label>
+                        <span id="alu-result">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="register-view">
+                <h2>Registers</h2>
+                <div class="register-grid" id="register-container">
+                    <!-- Register values will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="memory-view">
+                <h2>Memory</h2>
+                <div class="memory-controls">
+                    <input type="text" id="memory-search" placeholder="Search address...">
+                    <select id="memory-display-format">
+                        <option value="hex">Hexadecimal</option>
+                        <option value="decimal">Decimal</option>
+                        <option value="binary">Binary</option>
+                    </select>
+                </div>
+                <div class="memory-grid" id="memory-container">
+                    <!-- Memory values will be populated by JavaScript -->
+                </div>
+            </div>
         </div>
     </div>
+    
     <script src="script.js"></script>
 </body>
-
 </html>
