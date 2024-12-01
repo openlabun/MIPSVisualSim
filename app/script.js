@@ -21,7 +21,7 @@ function translateInstructionToHex(instruction) {
         "gp": "11100", "sp": "11101", "fp": "11110", "ra": "11111"
     };
 
-    const parts = instruction.split(' ');
+    const parts = instruction.split(' '); 
 
     const opcode = opcodeMap[parts[0]];
     if (!opcode) return "Unknown Instruction";
@@ -196,7 +196,7 @@ function hexToBinary(hex) {
 
 
 function sum(a, b) {
-    return a + b;
+    return a + b; 
 }
 
 
@@ -483,11 +483,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 registers[rd] = registers[rs] + parseInt(immediate);
                 break;
             }
+            case 'andi': {
+                const [rd, rs, immediate] = operands;
+                registers[rd] = registers[rs] & parseInt(immediate);
+                break;
+            }
+            case 'ori': {
+                const [rd, rs, immediate] = operands;
+                registers[rd] = registers[rs] | parseInt(immediate);
+                break;
+            }
+            case 'slti': {
+                const [rd, rs, immediate] = operands;
+                registers[rd] = registers[rs] < parseInt(immediate) ? 1 : 0;
+                break;
+            }
             case 'lw': {
                 const [rt, rs, offset] = operands;
                 const address = registers[rs] + parseInt(offset);
-                //console.log('lw address:', address);
-                //console.log('lw memory value:', memory[address]);
                 if (memory.hasOwnProperty(address)) {
                     registers[rt] = memory[address];
                 } else {
@@ -498,8 +511,28 @@ document.addEventListener('DOMContentLoaded', function () {
             case 'sw': {
                 const [rt, rs, offset] = operands;
                 const address = registers[rs] + parseInt(offset);
-                //console.log('sw rt:', rt, 'rs', rs, 'offset', offset, 'address', address,'getting', registers[rt] );
                 memory[address] = registers[rt];
+                break;
+            }
+            case 'j': {
+                const [address] = operands;
+                console.log(PC)
+                PC = parseInt(address) -1 ; // -1 because the PC will be incremented after the instruction is executed
+                console.log(PC)
+                break;
+            }
+            case 'beq': {
+                const [rs, rt, offset] = operands;
+                if (registers[rs] === registers[rt]) {
+                    PC += parseInt(offset);
+                }
+                break;
+            }
+            case 'bne': {
+                const [rs, rt, offset] = operands;
+                if (registers[rs] !== registers[rt]) {
+                    PC += parseInt(offset);
+                }
                 break;
             }
             // Add cases for other MIPS operations
@@ -509,6 +542,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+
 
     // SETUP THE DEBUGGER
     const debugPlayButton = document.getElementById('dg-run-button');
