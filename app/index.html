@@ -23,7 +23,7 @@
                 <button id="process-file-button">Process File</button>
             </div>
             <button id="simulate-mips-button">Simulate MIPS</button>
-            <button id="simulate-step-by-step-button" onclick="simulateStepByStep()">Simulate Step-by-Step</button>
+            <button id="updateClock"> Update Clock</button>
         </div>
         <div id="simulation-tables" class="button-container">
             <div class="table-container">
@@ -255,20 +255,10 @@
            
             </table>
         </div>
-        <!-- Nueva sección para el flujo paso a paso -->
-        <div class="table-container">
-            <h2>Instruction Flow Steps</h2>
-            <table id="executionTable" border="1">
-                <tr>
-                    <th>Step</th>
-                    <th>Description</th>
-                    <th>Data</th>
-                </tr>
-            </table>
-        </div>
-        </div>
-    </div>
+
+    <div id="containerKonva"></div>
     <script src="script.js"></script>
+    <script src="scriptCir.js" type="module"></script>
 </body>
 
 </html>
