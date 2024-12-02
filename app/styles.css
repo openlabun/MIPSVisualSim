@@ -269,7 +269,6 @@ button:hover {
     stroke-width: 3;
 }
 
-/* Component text styling */
 text {
     user-select: none;
     -webkit-user-select: none;
