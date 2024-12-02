@@ -662,9 +662,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             case 'sw': {
                 eventVisible(instruction);
-                const [rt, rs, offset] = operands;
-                const address = registers[rs] + parseInt(offset);
-                memory[address] = registers[rt];
+                console.log("Ejecutando SW"); // Debug
+                const rt = operands[0];
+                const offsetBase = operands[1].split('(');
+                const offset = parseInt(offsetBase[0]);
+                const rs = offsetBase[1].replace(')', '');
+                const address = registers[rs] + offset;
+                const value = registers[rt];
+                
+                console.log(`SW: Guardando valor ${value} (de registro ${rt}) en dirección ${address}`); // Debug
+                memory[address] = value;
+                console.log("Memoria después de SW:", memory); // Debug
                 break;
             }
             case 'j': {
@@ -742,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function () {
         PC++;
 
         // Check if the program has finished
-        if (PC >= hexInstructions.length) {
+        if (PC > hexInstructions.length) {
             console.log('Program finished');
             console.log('Final Registers:', registers);
             console.log('Final Memory:', memory);
