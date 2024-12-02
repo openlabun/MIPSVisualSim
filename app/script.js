@@ -287,81 +287,128 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function processFiles(files) {
         const reader = new FileReader();
-
+    
         reader.onload = function (event) {
             const fileContent = event.target.result;
-            // Dividir el contenido en líneas y eliminar líneas vacías
+            console.log("Full file content:", fileContent);
+    
             const lines = fileContent.split('\n').filter(line => line.trim());
+    
+            // Check for Logisim RAM file formats
+            if (lines[0].startsWith('v2.0 raw') || lines[0].startsWith('v3.0')) {
+                processLogisimRAM(lines);
+            } else {
+                processMIPSInstructions(lines);
+            }
+        };
+    
+        reader.readAsText(files[0]);
+    }
+    
+    function processLogisimRAM(lines) {
+        // Debug logging
+        console.log("Processing Logisim RAM file");
+        console.log("Lines:", lines);
+    
+        // For 'v2.0 raw' format, the values are directly in the lines
+        const hexInstructions = lines.slice(1).flatMap(line => 
+            line.trim().split(/\s+/)
+        );
+    
+        console.log("Extracted hex instructions:", hexInstructions);
+    
+        // Find input elements safely
+        const hexInput = document.querySelector('#hex-input');
+        const mipsInput = document.querySelector('#mips-input');
+    
+        if (!hexInput || !mipsInput) {
+            console.error('Hex or MIPS input elements not found');
+            console.error('Hex input:', hexInput);
+            console.error('MIPS input:', mipsInput);
+            return;
+        }
+    
+        // Set hex instructions
+        hexInput.value = hexInstructions.join('\n');
+    
+        // Translate hex to MIPS
+        try {
+            translateHextoMIPS();
+        } catch (error) {
+            console.error('Error in translateHextoMIPS:', error);
+        }
+    }
 
-            // Traducir cada instrucción y construir las instrucciones traducidas
-            let translatedInstructions = '';
-            let originalInstructions = '';
+    function processMIPSInstructions(lines) {
+        let translatedInstructions = '';
+        let originalInstructions = '';
 
-            lines.forEach(line => {
-                const instruction = line.trim();
-                if (instruction) {
-                    // Convertir la instrucción MIPS a hexadecimal
-                    const hexInstruction = translateInstructionToHex(instruction);
-                    if (hexInstruction !== "Unknown Instruction" && hexInstruction !== "Invalid Syntax") {
-                        originalInstructions += `${instruction}\n`;
-                        translatedInstructions += `${hexInstruction}\n`;
-                    }
-                }
-            });
+    lines.forEach(line => {
+        const instruction = line.trim();
+        if (instruction) {
+            // Convertir la instrucción MIPS a hexadecimal
+            const hexInstruction = translateInstructionToHex(instruction);
+            if (hexInstruction !== "Unknown Instruction" && hexInstruction !== "Invalid Syntax") {
+                originalInstructions += `${instruction}\n`;
+                translatedInstructions += `${hexInstruction}\n`;
+            }
+        }
+    });
 
             // Establecer el valor de los textareas
             mipsInput.value = originalInstructions.trim();
             hexInput.value = translatedInstructions.trim();
 
-            console.log("Instrucciones originales:", originalInstructions);
-            console.log("Instrucciones en hexadecimal:", translatedInstructions);
-        };
-
-        reader.readAsText(files[0]);
+        console.log("Instrucciones originales:", originalInstructions);
+        console.log("Instrucciones en hexadecimal:", translatedInstructions);
     }
 
+    function updateMemoryDisplay(memory) {
+        const memoryTable = document.getElementById('ramTable');
+        const memRows = memoryTable.getElementsByTagName('tr');
 
-
-    function saveHexToFile() {
-        // Get the value of the inputHex textarea
-        const hexInstructions = hexInput.value.trim();
-
-        // Check if hexInstructions is empty
-        if (!hexInstructions) {
-            console.error("No instructions found in inputHex textarea.");
-            return;
+        for (let i = 1; i < memRows.length; i++) {
+            const address = i - 1;
+            const value = memory[address] || 0;
+            memRows[i].cells[0].textContent = `0x${address.toString(16).toUpperCase().padStart(2, '0')}`;
+            memRows[i].cells[1].textContent = `0x${value.toString(16).toUpperCase().padStart(8, '0')}`;
         }
-
-        // Split the hexInstructions by newline characters to get individual instructions
-        const instructionsArray = hexInstructions.split('\n');
-
-        // Join the instructions with a space to format them on the second line
-        const instructionsLine = instructionsArray.join(' ');
-
-        // Create a Blob with the hex instructions and instructions line
-        const blob = new Blob(['v2.0 raw\n' + instructionsLine], { type: 'text/plain' });
-
-        // Create a temporary anchor element to trigger the download
-        const anchor = document.createElement('a');
-        anchor.download = 'mips_instructions.hex';
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
     }
+
 
 
 
     function translateHextoMIPS() {
+        // Find input elements safely
+        const hexInput = document.querySelector('#hex-input');
+        const mipsInput = document.querySelector('#mips-input');
+    
+        if (!hexInput || !mipsInput) {
+            console.error('Input elements not found');
+            console.error('Hex input:', hexInput);
+            console.error('MIPS input:', mipsInput);
+            return;
+        }
+    
         const instructions = hexInput.value.trim().split('\n');
-
+        console.log("Instructions to translate:", instructions);
+    
         // Translate each hexadecimal instruction to MIPS
         const translatedInstructions = instructions.map(instruction => {
-            return translateInstructionToMIPS(instruction.trim());
+            try {
+                const mipsInstruction = translateInstructionToMIPS(instruction.trim());
+                console.log(`Hex: ${instruction}, MIPS: ${mipsInstruction}`);
+                return mipsInstruction;
+            } catch (error) {
+                console.error(`Error translating instruction ${instruction}:`, error);
+                return `Error translating: ${instruction}`;
+            }
         });
-
+    
         // Join the translated instructions with a newline character
         const formattedInstructions = translatedInstructions.join('\n');
-
-        // Set the value of the input textarea to the formatted instructions
+    
+        // Set the value of the mips textarea to the formatted instructions
         mipsInput.value = formattedInstructions;
     }
 
