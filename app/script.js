@@ -34,6 +34,8 @@ let gen_data = 0
 let gen_sum2 = 0
 let gen_ra = 0
 let gen_rb = 0
+
+
 let memory = {};
 
 const img = document.getElementById('myImage');
@@ -97,9 +99,10 @@ img.addEventListener('mousemove', function (e) {
         text += `Jump: ${gen_memtoreg}`;
     } else if (1078 < x && x < 1113 && 301 < y && y < 318) {
         text += `Jump: ${gen_data2}`;
+
     }
 
-    text+=` ${x} ${y}`
+    //text+=` ${x} ${y}`
 
     textOverlay.textContent = text;
 });
@@ -803,6 +806,8 @@ function executeInstruction(instruction) {
                 const [last] = operands;
                 const lastValue = parseInt(last, 16);
                 gen_jumpad = lastValue
+                gen_aluop = 0
+                gen_alusrc = 0
                 currentInstructionIndex = lastValue - 1;
                 updateExecutionStatus();
                 break;
@@ -813,7 +818,11 @@ function executeInstruction(instruction) {
                 gen_rs = rs
                 gen_rt = rt
                 gen_imm = immValue
-                if (registers[rs] == registers[rt]) {
+                gen_aluop = 1
+                gen_alusrc = 0
+                gen_runit = registers[rs] 
+                gen_alu = registers[rs] - registers[rt]
+                if (gen_alu === 0) {
                     currentInstructionIndex = currentInstructionIndex + immValue
                 }
                 updateExecutionStatus();
@@ -825,6 +834,8 @@ function executeInstruction(instruction) {
                 gen_rs = rs
                 gen_rt = rt
                 gen_imm = immValue
+                gen_aluop = 1
+                gen_alusrc = 0
                 if (registers[rs] != registers[rt]) {
                     currentInstructionIndex = currentInstructionIndex + immValue
 
@@ -837,7 +848,11 @@ function executeInstruction(instruction) {
                 gen_rs = rs
                 gen_rt = rt
                 gen_rd = rd
-                registers[rd] = registers[rs] + registers[rt];
+                gen_aluop = 2
+                gen_alusrc = 0
+                gen_runit = registers[rs]
+                gen_alu = registers[rs] + registers[rt];
+                registers[rd] = gen_alu
                 const result = registers[rd];
                 console.log(`Add result: ${registers[rs]} + ${registers[rt]} = ${result}`);
                 const aluResultElement = document.getElementById('alu-result');
@@ -848,11 +863,12 @@ function executeInstruction(instruction) {
             }
             case 'addi': {
                 const [rt, rs, immediate] = operands;
-                // Convert immediate from hex string to number
                 const immValue = parseInt(immediate, 16);
                 gen_rs = rs
                 gen_rt = rt
                 gen_imm = immValue
+                gen_aluop = 0
+                gen_alusrc = 1
                 registers[rt] = registers[rs] + immValue;
                 const result = registers[rt];
                 console.log(`Addi result: ${registers[rs]} + ${immValue} = ${result}`);
@@ -867,7 +883,11 @@ function executeInstruction(instruction) {
                 gen_rs = rs
                 gen_rt = rt
                 gen_rd = rd
-                registers[rd] = registers[rs] - registers[rt];
+                gen_aluop = 2
+                gen_alusrc = 0
+                gen_alu = registers[rs] - registers[rt];
+                gen_runit = registers[rs]
+                registers[rd] = gen_alu
                 const result = registers[rd];
                 console.log(`Sub result: ${registers[rs]} - ${registers[rt]} = ${result}`);
                 const aluResultElement = document.getElementById('alu-result');
@@ -881,8 +901,11 @@ function executeInstruction(instruction) {
                 gen_rs = rs
                 gen_rt = rt
                 gen_offset = offset
-                const address = registers[rs] + parseInt(offset);
-                registers[rt] = memory[address] || 0;
+                gen_aluop = 0
+                gen_alusrc = 1
+                gen_runit = registers[rs]
+                gen_alu = registers[rs] + parseInt(offset);
+                registers[rt] = memory[gen_alu] || 0;
                 console.log(`Load word: memory[${address}] = ${registers[rt]}`);
                 const aluResultElement = document.getElementById('alu-result');
                 if (aluResultElement) {
@@ -895,12 +918,15 @@ function executeInstruction(instruction) {
                 gen_rs = rs
                 gen_rt = rt
                 gen_offset = offset
-                const address = registers[rs] + parseInt(offset);
-                memory[address] = registers[rt];
-                console.log(`Store word: memory[${address}] = ${registers[rt]}`);
+                gen_aluop = 0
+                gen_alusrc = 1
+                gen_runit = registers[rt]
+                gen_alu = registers[rs] + parseInt(offset)
+                memory[gen_alu] = registers[rt];
+                console.log(`Store word: memory[${gen_alu}] = ${registers[rt]}`);
                 const aluResultElement = document.getElementById('alu-result');
                 if (aluResultElement) {
-                    aluResultElement.textContent = `0x${address.toString(16).padStart(8, '0')}`;
+                    aluResultElement.textContent = `0x${gen_alu.toString(16).padStart(8, '0')}`;
                 }
                 break;
             }
