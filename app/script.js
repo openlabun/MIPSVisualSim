@@ -450,65 +450,142 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function eventVisible(instruction) {
         const [op, ...operands] = instruction.split(' ');
-        if (op === 'add' || op === 'sub' || op === 'and' || op === 'or' || op=== 'slt') {
-            // Access the SVG element
-            var svgObject = document.querySelector('object[type="image/svg+xml"]');
-            if (svgObject) {
-                var svgDoc = svgObject.contentDocument;
-                var PCElement = svgDoc.getElementById('PC');
-                var instructionMem = svgDoc.getElementById('InsMem');
-                var Registers = svgDoc.getElementById('Registers');
-                var AluCont = svgDoc.getElementById('AluCont');
-                var Alu = svgDoc.getElementById('Alu');
-                var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
-            
-            } else if (op == "addi" || op == "andi" || op == "ori" || op == "slti") {
-                // Access the SVG element
-                var svgObject = document.querySelector('object[type="image/svg+xml"]');
-                if (svgObject) {
-                    var svgDoc = svgObject.contentDocument;
-                    var PCElement = svgDoc.getElementById('PC');
-                    var instructionMem = svgDoc.getElementById('InsMem');
-                    var Registers = svgDoc.getElementById('Registers');
-                    var AluCont = svgDoc.getElementById('AluCont');
-                    var Alu = svgDoc.getElementById('Alu');
-                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
-                    var muxRegdst = svgDoc.getElementById('muxRegDst');
-                } else if (op == "lw") {
-                    var svgDoc = svgObject.contentDocument;
-                    var PCElement = svgDoc.getElementById('PC');
-                    var instructionMem = svgDoc.getElementById('InsMem');
-                    var Registers = svgDoc.getElementById('Registers');
-                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
-                    var DataMem = svgDoc.getElementById('DataMem');
-                } else if (op == "sw") {
-                    var svgDoc = svgObject.contentDocument;
-                    var PCElement = svgDoc.getElementById('PC');
-                    var instructionMem = svgDoc.getElementById('InsMem');
-                    var Registers = svgDoc.getElementById('Registers');
-                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
-                    var DataMem = svgDoc.getElementById('DataMem');
-                    var Alu = svgDoc.getElementById('Alu');
-                } else if (op == "beq" || op == "bne") {
-                    var svgDoc = svgObject.contentDocument;
-                    var PCElement = svgDoc.getElementById('PC');
-                    var Registers = svgDoc.getElementById('Registers');
-                    var Alu = svgDoc.getElementById('Alu');
-                    var muxaluSRC = svgDoc.getElementById('mux-aluSRC');
-                    var muxBranch = svgDoc.getElementById('muxBranch');
-                } else if (op == "j") {
-                    var svgDoc = svgObject.contentDocument;
-                    var PCElement = svgDoc.getElementById('PC');
-                    var instructionMem = svgDoc.getElementById('InsMem');
-                    var muxPC = svgDoc.getElementById('muxPC');
+        const svgObject = document.querySelector('object[type="image/svg+xml"]');
+    
+        if (svgObject) {
+            const svgDoc = svgObject.contentDocument;
+            const allElements = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst', 'DataMem', 'muxBranch', 'muxPC'];
+    
+            // Paso 1: Limpiar popups y eventos anteriores
+            allElements.forEach(id => {
+                const element = svgDoc.getElementById(id);
+                if (element) {
+                    element.style.visibility = 'hidden';
+                    // Eliminar eventos anteriores si existen
+                    element.removeEventListener('mouseenter', element._mouseenterHandler);
+                    element.removeEventListener('mouseleave', element._mouseleaveHandler);
                 }
-
+            });
+    
+            // Paso 2: Determinar los elementos a mostrar según la instrucción
+            let elementsToShow = [];
+            let popupTexts = [];
+    
+            if (op === 'add' || op === 'sub' || op === 'and' || op === 'or' || op === 'slt') {
+                elementsToShow = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC'];
+                popupTexts = [
+                    `PC: ${PC}`,
+                    `${instruction}`,
+                    `Registers: ${JSON.stringify(registers)}`,
+                    `ALU Control: ${op}`,
+                    `ALU: ${operands.join(', ')}`,
+                    `MUX ALU Source: ${operands[2]}`
+                ];
+            } else if (op === 'addi' || op === 'andi' || op === 'ori' || op === 'slti') {
+                elementsToShow = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst'];
+                popupTexts = [
+                    `PC: ${PC}`,
+                    `${instruction}`,
+                    `Registers: ${JSON.stringify(registers)}`,
+                    `ALU Control: ${op}`,
+                    `ALU: ${operands.join(', ')}`,
+                    `MUX ALU Source: ${operands[2]}`,
+                    `MUX RegDst: ${operands[0]}`
+                ];
+            } else if (op === 'lw') {
+                elementsToShow = ['PC', 'InsMem', 'Registers', 'mux-aluSRC', 'DataMem'];
+                popupTexts = [
+                    `PC: ${PC}`,
+                    `${instruction}`,
+                    `Registers: ${registers}`,
+                    `MUX ALU Source: ${operands[2]}`,
+                    `Data Memory: ${(Object.values(memory))}`
+                ];
+            } else if (op === 'sw') {
+                elementsToShow = ['PC', 'InsMem', 'Registers', 'mux-aluSRC', 'DataMem', 'Alu'];
+                popupTexts = [
+                    `PC: ${PC}`,
+                    `${instruction}`,
+                    `Registers: ${registers}`,
+                    `MUX ALU Source: ${operands[2]}`,
+                    `Data Memory: ${(Object.values(memory))}`,
+                    `ALU: ${operands.join(', ')}`
+                ];
+            } else if (op === 'beq' || op === 'bne') {
+                elementsToShow = ['PC', 'Registers', 'Alu', 'mux-aluSRC', 'muxBranch'];
+                popupTexts = [
+                    `PC: ${PC}`,
+                    `Registers: ${registers}`,
+                    `ALU: ${operands.join(', ')}`,
+                    `MUX ALU Source: ${operands[2]}`,
+                    `MUX Branch: ${op}`
+                ];
+            } else if (op === 'j') {
+                elementsToShow = ['PC', 'InsMem', 'muxPC'];
+                popupTexts = [
+                    `PC: ${PC}`,
+                    `${instruction}`,
+                    `MUX PC: ${operands[0]}`
+                ];
             }
-            else {
-                console.error('SVG object not found.');
-            }
+            elementsToShow.forEach((id, index) => {
+                const element = svgDoc.getElementById(id);
+                if (element) {
+                    element.style.visibility = 'visible';
+    
+                    element._mouseenterHandler = (event) => {
+                        if (id === 'Registers') {
+                            console.log("Estado actual de los registros:", registers);
+                            // Formato especial para los registros
+                            const registersText = [
+                                'Temporales:',
+                                ...['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9']
+                                    .map(reg => `$${reg}: 0x${registers[reg].toString(16).padStart(8, '0')}`),
+                                '',
+                                'Salvados:',
+                                ...['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7']
+                                    .map(reg => `$${reg}: 0x${registers[reg].toString(16).padStart(8, '0')}`),
+                                '',
+                                'Argumentos:',
+                                ...['a0', 'a1', 'a2', 'a3']
+                                    .map(reg => `$${reg}: 0x${registers[reg].toString(16).padStart(8, '0')}`),
+                                '',
+                                'Otros:',
+                                `$zero: 0x${registers.zero.toString(16).padStart(8, '0')}`,
+                                `$ra: 0x${registers.ra.toString(16).padStart(8, '0')}`,
+                                `$sp: 0x${registers.sp.toString(16).padStart(8, '0')}`,
+                                `$fp: 0x${registers.fp.toString(16).padStart(8, '0')}`
+                            ].join('\n');
+                            showPopup(event, registersText);
+                        } else {
+                            showPopup(event, popupTexts[index]);
+                        }
+                    };
+                    element._mouseleaveHandler = hidePopup;
+    
+                    element.addEventListener('mouseenter', element._mouseenterHandler);
+                    element.addEventListener('mouseleave', element._mouseleaveHandler);
+                }
+            });
         }
-        return false;
+    }
+
+    function showAllElements() {
+        var svgObject = document.querySelector('object[type="image/svg+xml"]');
+        if (svgObject) {
+            var svgDoc = svgObject.contentDocument;
+            var allElements = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst', 'DataMem', 'muxBranch', 'muxPC'];
+    
+            // Show all elements
+            allElements.forEach(id => {
+                var element = svgDoc.getElementById(id);
+                if (element) {
+                    element.style.visibility = 'visible';
+                }
+            });
+        } else {
+            console.error('SVG object not found.');
+        }
     }
     
 
@@ -633,7 +710,10 @@ document.addEventListener('DOMContentLoaded', function () {
     debugPlayButton.addEventListener('click', simulateMIPS);
     debugStepButton.addEventListener('click', stepMIPS);
     debugBackButton.addEventListener('click', stepBackMIPS);
-    debugResetButton.addEventListener('click', resetMIPS);
+    debugResetButton.addEventListener('click', () => {
+        resetMIPS();
+        showAllElements();
+    });
     mipsInput.addEventListener('input', updateDebuggerInfo);
 
     // Initialize the program counter (PC) and history stack
@@ -734,8 +814,150 @@ document.addEventListener('DOMContentLoaded', function () {
         debuggerInfo[1].textContent = `Current instruction: ${mipsInput.value.trim().split('\n')[PC] ?? null}`;
         debuggerInfo[2].textContent = `Previous instruction: ${mipsInput.value.trim().split('\n')[PC - 1] ?? null}`;
     }
-});
+    let popup;
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded');
+        // Crear el elemento popup si no existe
+        
+        if (!document.getElementById('popup')) {
+            console.log('Creating popup element');
+            popup = document.createElement('div');
+            popup.id = 'popup';
+            popup.style.position = 'absolute';
+            popup.style.backgroundColor = 'white';
+            popup.style.border = '1px solid black';
+            popup.style.padding = '5px';
+            popup.style.display = 'none';
+            popup.style.pointerEvents = 'none';
+            popup.style.zIndex = '1000';
+            document.body.appendChild(popup);
+            console.log('Popup element created and added to DOM');
+        }
+    });
 
+    const svgObject = document.getElementById('mySvg');
+
+    svgObject.addEventListener('load', () => {
+        const svgDoc = svgObject.contentDocument;
+        if (!svgDoc) {
+            console.error('No se pudo acceder al documento SVG.');
+            return;
+        }
+
+        const elementsWithPopups = {
+            'PC': 'Program Counter',
+            'InsMem': 'Instruction Memory',
+            'Registers': 'Registers',
+            'AluCont': 'ALU Control',
+            'Alu': 'Arithmetic Logic Unit',
+            'mux-aluSRC': 'MUX ALU Source',
+            'muxRegDst': 'MUX Register Destination',
+            'DataMem': 'Data Memory',
+            'muxBranch': 'MUX Branch',
+            'muxPC': 'MUX Program Counter'
+            // Añade más elementos y sus descripciones según sea necesario
+        };
+
+        // IDs de los elementos que deben mostrar un popup
+        Object.keys(elementsWithPopups).forEach(id => {
+            const element = svgDoc.getElementById(id);
+            if (element) {
+                element.addEventListener('mouseenter', (event) => {
+                    showPopup(event, elementsWithPopups[id]);
+                });
+                element.addEventListener('mouseleave', hidePopup);
+            }
+        });
+    });
+
+    function createPopup() {
+        popup = document.createElement('div');
+        popup.id = 'popup';
+        // Estilos básicos
+        popup.style.position = 'fixed';
+        popup.style.display = 'none';
+        popup.style.zIndex = '99999'; // Valor muy alto para asegurar que esté por encima de todo
+        
+        // Estilos visuales
+        popup.style.backgroundColor = '#333';
+        popup.style.color = 'white';
+        popup.style.padding = '8px 12px';
+        popup.style.borderRadius = '4px';
+        popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+        popup.style.fontSize = '14px';
+        popup.style.fontFamily = 'Arial, sans-serif';
+        popup.style.minWidth = '100px';
+        popup.style.maxWidth = '200px';
+        
+        // Asegurarse de que sea visible
+        popup.style.opacity = '1';
+        popup.style.visibility = 'visible';
+        
+        document.body.appendChild(popup);
+        console.log('Popup created with enhanced styles');
+        return popup;
+    }
+
+    function showPopup(event, text) {
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.id = 'popup';
+            popup.style.position = 'absolute';
+            popup.style.backgroundColor = 'white';
+            popup.style.border = '1px solid black';
+            popup.style.padding = '10px';
+            popup.style.borderRadius = '5px';
+            popup.style.boxShadow = '2px 2px 5px rgba(0,0,0,0.2)';
+            popup.style.fontSize = '14px';
+            popup.style.fontFamily = 'monospace';
+            popup.style.whiteSpace = 'pre';
+            popup.style.maxHeight = '300px';
+            popup.style.overflowY = 'auto';
+            popup.style.display = 'none';
+            popup.style.pointerEvents = 'none';
+            popup.style.zIndex = '1000';
+            document.body.appendChild(popup);
+        }
+    
+        popup.textContent = text;
+        
+        const x = event.clientX + 15;
+        const y = event.clientY + 15;
+        popup.style.left = `${x}px`;
+        popup.style.top = `${y}px`;
+        popup.style.display = 'block';
+    }
+    
+    function hidePopup() {
+        if (popup) {
+            popup.style.display = 'none';
+        }
+    }
+    
+
+    // Agregar estilos CSS globales
+    const style = document.createElement('style');
+    style.textContent = `
+        #popup {
+        position: fixed;
+        background-color: white;
+        color: black;
+        padding: 15px 20px;        /* Padding más grande */
+        border-radius: 6px;
+        border: 1px solid #ccc;    /* Borde sutil */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        font-size: 16px;           /* Texto más grande */
+        font-family: Arial, sans-serif;
+        min-width: 150px;          /* Ancho mínimo más grande */
+        max-width: 250px;          /* Ancho máximo más grande */
+        z-index: 99999;
+        pointer-events: none;
+        opacity: 1;
+        visibility: visible;
+    }
+    `;
+    document.head.appendChild(style);
+});
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = {
         sum,
