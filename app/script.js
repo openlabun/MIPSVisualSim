@@ -456,6 +456,7 @@ document.addEventListener('DOMContentLoaded', function () {
             case 'add': {
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] + registers[rt];
+                //
                 break;
             }
             case 'sub': {
