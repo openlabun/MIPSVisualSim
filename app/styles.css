@@ -173,3 +173,16 @@ button:hover {
     pointer-events: none;
     z-index: 1000;
 }
+
+th:hover{
+    color: green;
+    cursor: pointer;
+}
+h2:hover{
+    color: green;
+    cursor: pointer;
+}
+td:hover{
+    color:blue;
+    cursor: pointer;
+}
