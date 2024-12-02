@@ -952,6 +952,10 @@ document.addEventListener('DOMContentLoaded', function () {
         popup.style.left = `${x}px`;
         popup.style.top = `${y}px`;
         popup.style.display = 'block';
+        popup.style.width = '100px'; // Ajusta el ancho según sea necesario
+        popup.style.height = '600px'; // Ajusta la altura según sea necesario
+        popup.style.maxWidth = '700px'; // Ajusta el ancho máximo según sea necesario
+        popup.style.maxHeight = '900px'; // Ajusta la altura máxima según sea necesario
     }
     
     function hidePopup() {
