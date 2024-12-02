@@ -280,12 +280,13 @@ button:disabled, .debugger-button:disabled {
 .ind_control {
     position: absolute;
     z-index: 50;
-    height: 17%;
-    width: 12%;
-    top: 4%;
-    left: 39%;
-    background-color: black;
-    opacity: 10%;
+    height: 1%;
+    width: 10%;
+    top: 10%;
+    background-color: #ffffff;
+    opacity: 100%;
+    border-radius: 5px;
+    
 }
 
 .ind_registers {
@@ -295,8 +296,8 @@ button:disabled, .debugger-button:disabled {
     width: 9%;
     top: 35%;
     left: 51%;
-    background-color: black;
-    opacity: 10%;
+    background-color: #c21c1c;
+    opacity: 80%;
 }
 
 .ind_alucontrol {
@@ -306,8 +307,8 @@ button:disabled, .debugger-button:disabled {
     width: 2.2%;
     top: 85%;
     left: 69.6%;
-    background-color: black;
-    opacity: 10%;
+    background-color: #c21c1c;
+    opacity: 80%;
 }
 
 .ind_alu {
@@ -317,18 +318,23 @@ button:disabled, .debugger-button:disabled {
     width: 4%;
     top: 50%;
     left: 73.4%;
-    background-color: black;
-    opacity: 10%;
+    background-color: #c21c1c;
+    opacity: 80%;
 }
 
 .ind_pc {
     position: absolute;
-    z-index: 50;
-    height: 10.4%;
-    width: 2.4%;
-    top: 33%;
-    left: 2.4%;
-    background-color: black;
-    opacity: 10%;
+    background-color: #751111;
+    opacity: 100%;
+    border-radius: 5px;
 }
 
+.btn-overlay {
+    position: absolute;
+    z-index: 10;
+    top: 10%;
+    left: 45%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 5px 10px;
+}
