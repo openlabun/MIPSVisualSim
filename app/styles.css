@@ -1,4 +1,3 @@
-
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -202,34 +201,41 @@ button:disabled, .debugger-button:disabled {
     border-radius: 15px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
     padding: 20px;
-  }
-  
-  .table {
+}
+
+.table {
+}
+
+.table {
     color: #235a5b;
     background-color: rgba(255, 255, 255, 0.8);
     border-collapse: collapse;
     width: 100%;
-  }
-  
-  .table th {
+}
+
+.table th {
     background-color: #235a5b;
     color: #ffffff;
     text-transform: uppercase;
-  }
-  
-  .table td, .table th {
+}
+
+.table td, .table th {
     border: 1px solid #2e344d;
-    padding: 10p
+    padding: 5px
 ;}  
 
-.image-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Toma toda la altura de la pantalla */
-    margin: 0; /* Elimina márgenes */
-    padding: 0;
+.image-container { 
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-left: 72px;
+.image-container { 
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-left: 72px;
 }
+
 
 .centered-image {
     max-width: 90%; /* Se adapta al ancho del viewport */
@@ -237,4 +243,80 @@ button:disabled, .debugger-button:disabled {
     object-fit: contain; /* Escala la imagen proporcionalmente */
     border: 2px solid #235a5b; /* Opcional: Borde decorativo */
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Opcional: Sombra para destacar */
+}
+
+.ind_control {
+    position: absolute;
+    z-index: 50;
+    height: 17.5%;
+    width: 12.5%;
+    top: 3.5%;
+    left: 38.7%;
+    opacity: 30%;
+    border-radius: 5px;
+}
+
+.ind_pc {
+    position: absolute;
+    z-index: 50;
+    height: 15%;
+    width: 2.4%;
+    top: 33%;
+    left: 2.4%;
+    opacity: 30%;
+    border-radius: 5px;
+}
+
+.ind_registers {
+    position: absolute;
+    z-index: 50;
+    height: 35%;
+    width: 9%;
+    top: 35%;
+    left: 51%;
+    opacity: 30%;
+    border-radius: 5px;
+}
+
+.ind_alucontrol {
+    position: absolute;
+    z-index: 50;
+    height: 9.5%;
+    width: 6.4%;
+    top: 84.3%;
+    left: 67.2%;
+    opacity: 30%;
+    border-radius: 5px;
+}
+
+.ind_alu {
+    position: absolute;
+    z-index: 50;
+    height: 18.5%;
+    width: 6.2%;
+    top: 45.5%;
+    left: 71.3%;
+    opacity: 30%;
+    border-radius: 5px;
+}
+
+.ind_instregisters {
+    position: absolute;
+    z-index: 50;
+    height: 29.5%;
+    width: 11%;
+    top: 40.5%;
+    left: 29.4%;
+    opacity: 30%;
+    border-radius: 5px;
+}
+
+.btn-overlay {
+    position: absolute;
+    z-index: 50;
+    max-height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 5px 10px;
+}
 }
