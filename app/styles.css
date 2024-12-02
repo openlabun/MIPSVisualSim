@@ -280,13 +280,23 @@ button:disabled, .debugger-button:disabled {
 .ind_control {
     position: absolute;
     z-index: 50;
-    height: 1%;
-    width: 10%;
-    top: 10%;
-    background-color: #ffffff;
-    opacity: 100%;
+    height: 17.5%;
+    width: 12.5%;
+    top: 3.5%;
+    left: 38.7%;
+    opacity: 20%;
     border-radius: 5px;
-    
+}
+
+.ind_pc {
+    position: absolute;
+    z-index: 50;
+    height: 15%;
+    width: 2.4%;
+    top: 33%;
+    left: 2.4%;
+    opacity: 20%;
+    border-radius: 5px;
 }
 
 .ind_registers {
@@ -296,44 +306,47 @@ button:disabled, .debugger-button:disabled {
     width: 9%;
     top: 35%;
     left: 51%;
-    background-color: #c21c1c;
-    opacity: 80%;
+    opacity: 20%;
+    border-radius: 5px;
 }
 
 .ind_alucontrol {
     position: absolute;
     z-index: 50;
-    height: 8%;
-    width: 2.2%;
-    top: 85%;
-    left: 69.6%;
-    background-color: #c21c1c;
-    opacity: 80%;
+    height: 9.5%;
+    width: 6.4%;
+    top: 84.3%;
+    left: 67.2%;
+    opacity: 20%;
+    border-radius: 5px;
 }
 
 .ind_alu {
     position: absolute;
     z-index: 50;
-    height: 10%;
-    width: 4%;
-    top: 50%;
-    left: 73.4%;
-    background-color: #c21c1c;
-    opacity: 80%;
+    height: 18.5%;
+    width: 6.2%;
+    top: 45.5%;
+    left: 71.3%;
+    opacity: 20%;
+    border-radius: 5px;
 }
 
-.ind_pc {
+.ind_instregisters {
     position: absolute;
-    background-color: #751111;
-    opacity: 100%;
+    z-index: 50;
+    height: 29.5%;
+    width: 11%;
+    top: 40.5%;
+    left: 29.4%;
+    opacity: 20%;
     border-radius: 5px;
 }
 
 .btn-overlay {
     position: absolute;
-    z-index: 10;
-    top: 10%;
-    left: 45%;
+    z-index: 50;
+    max-height: 100%;
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 5px;
     padding: 5px 10px;
