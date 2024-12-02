@@ -22,6 +22,7 @@ body {
     color: var(--text-color);
 }
 
+
 /* Header */
 .header {
     background-color: var(--primary-color);
@@ -30,7 +31,16 @@ body {
     text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
+.description {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    text-align: center;
+    padding: 10px;
+}
 /* Main Container */
 .main-container {
     display: grid;
