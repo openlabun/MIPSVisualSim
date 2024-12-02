@@ -23,7 +23,17 @@ let gen_rd = 0
 let gen_regdst = 0
 let gen_offset = 0
 let gen_jumpad = 0
-
+let gen_beq = 0
+let gen_zero = 0
+let gen_bne = 0
+let gen_not = 0
+let gen_and2 = 0
+let gen_and1 = 0
+let gen_regwrite = 0
+let gen_data = 0
+let gen_sum2 = 0
+let gen_ra = 0
+let gen_rb = 0
 let memory = {};
 
 const img = document.getElementById('myImage');
@@ -55,9 +65,41 @@ img.addEventListener('mousemove', function (e) {
         text += `Offset: ${gen_offset}`;
     } else if (180 < x && x < 215 && 328 < y && y < 353) {
         text += `Jump: ${gen_offset}`;
+    } else if (41 < x && x < 77 && 343 < y && y < 360) {
+        text += `Jump: ${gen_beq}`;
+    } else if (37 < x && x < 72 && 371 < y && y < 388) {
+        text += `Jump: ${gen_zero}`;
+    } else if (79 < x && x < 100 && 403 < y && y < 420) {
+        text += `Jump: ${gen_not}`;
+    } else if (117 < x && x < 138 && 414< y && y < 432) {
+        text += `Jump: ${gen_and2}`;
+    } else if (127 < x && x < 147 && 362< y && y < 380) {
+        text += `Jump: ${gen_and1}`;
+    } else if (444 < x && x < 492 && 253 < y && y < 270) {
+        text += `Jump: ${gen_regwrite}`;
+    } else if (503 < x && x < 539 && 209< y && y < 226) {
+        text += `Jump: ${gen_data}`;
+    } else if (99 < x && x < 137 && 289 < y && y < 322) {
+        text += `Jump: ${gen_sum2}`;
+    } else if (649 < x && x < 684 && 269 < y && y < 286) {
+        text += `Jump: ${gen_ra}`;
+    } else if (639 < x && x < 674 && 321 < y && y < 338) {
+        text += `Jump: ${gen_rb}`;
+    } else if (639 < x && x < 674 && 321 < y && y < 338) {
+        text += `Jump: ${gen_rb}`;
+    } else if (847 < x && x < 888 && 288 < y && y < 305) {
+        text += `Jump: ${gen_result}`;
+    } else if (847 < x && x < 882 && 316 < y && y < 333) {
+        text += `Jump: ${gen_zero2}`;
+    } else if ( 838< x && x < 896 && 358 < y && y < 375) {
+        text += `Jump: ${gen_memwrite}`;
+    } else if (1011 < x && x < 1068 && 368 < y && y < 385) {
+        text += `Jump: ${gen_memtoreg}`;
+    } else if (1078 < x && x < 1113 && 301 < y && y < 318) {
+        text += `Jump: ${gen_data2}`;
     }
 
-    //text+=` ${x} ${y}`
+    text+=` ${x} ${y}`
 
     textOverlay.textContent = text;
 });
