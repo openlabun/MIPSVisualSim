@@ -470,13 +470,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // Paso 2: Determinar los elementos a mostrar según la instrucción
             let elementsToShow = [];
             let popupTexts = [];
-    
+            console.log(registers[Object.keys(registers)[0]]);
             if (op === 'add' || op === 'sub' || op === 'and' || op === 'or' || op === 'slt') {
                 elementsToShow = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC'];
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${JSON.stringify(registers)}`,
+                    `Registers: ${(registers)}`,
                     `ALU Control: ${op}`,
                     `ALU: ${operands.join(', ')}`,
                     `MUX ALU Source: ${operands[2]}`
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${JSON.stringify(registers)}`,
+                    `Registers: ${(registers)}`,
                     `ALU Control: ${op}`,
                     `ALU: ${operands.join(', ')}`,
                     `MUX ALU Source: ${operands[2]}`,
@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${registers}`,
+                    `Registers: ${JSON.stringify(registers)}`,
                     `MUX ALU Source: ${operands[2]}`,
                     `Data Memory: ${(Object.values(memory))}`
                 ];
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${registers}`,
+                    `Registers: ${JSON.stringify(registers)}`,
                     `MUX ALU Source: ${operands[2]}`,
                     `Data Memory: ${(Object.values(memory))}`,
                     `ALU: ${operands.join(', ')}`
@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 elementsToShow = ['PC', 'Registers', 'Alu', 'mux-aluSRC', 'muxBranch'];
                 popupTexts = [
                     `PC: ${PC}`,
-                    `Registers: ${registers}`,
+                     `Registers: ${JSON.stringify(registers)}`,
                     `ALU: ${operands.join(', ')}`,
                     `MUX ALU Source: ${operands[2]}`,
                     `MUX Branch: ${op}`
@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const elementsWithPopups = {
             'PC': 'Program Counter',
             'InsMem': 'Instruction Memory',
-            'Registers': 'Registers',
+            'Register': 'Registers',
             'AluCont': 'ALU Control',
             'Alu': 'Arithmetic Logic Unit',
             'mux-aluSRC': 'MUX ALU Source',
@@ -919,7 +919,6 @@ document.addEventListener('DOMContentLoaded', function () {
             popup.style.zIndex = '1000';
             document.body.appendChild(popup);
         }
-    
         popup.textContent = text;
         
         const x = event.clientX + 15;
