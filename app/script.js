@@ -574,9 +574,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                 `$sp: 0x${registers.sp.toString(16).padStart(8, '0')}`,
                                 `$fp: 0x${registers.fp.toString(16).padStart(8, '0')}`
                             ].join('\n');
-                            showPopup(event, registersText);
+                            showPopup(event, registersText, "Register");
+                        } else if (id === 'PC') {
+                            showPopup(event, popupTexts[index], 'PC');
+                        } else if (id === 'DataMem') {
+                            showPopup(event, popupTexts[index], 'DataMem');
+                        } else if (id === 'Alu') {
+                            showPopup(event, popupTexts[index], 'Alu');
+                        } else if (id === 'InsMem') {
+                            showPopup(event, popupTexts[index], 'InsMem');
                         } else {
-                            showPopup(event, popupTexts[index]);
+                            showPopup(event, popupTexts[index], 'default');
                         }
                     };
                     element._mouseleaveHandler = hidePopup;
@@ -913,8 +921,6 @@ document.addEventListener('DOMContentLoaded', function () {
         popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
         popup.style.fontSize = '14px';
         popup.style.fontFamily = 'Arial, sans-serif';
-        popup.style.minWidth = '100px';
-        popup.style.maxWidth = '200px';
         
         // Asegurarse de que sea visible
         popup.style.opacity = '1';
@@ -925,37 +931,106 @@ document.addEventListener('DOMContentLoaded', function () {
         return popup;
     }
 
-    function showPopup(event, text) {
+    function showPopup(event, text, elementType) {
         if (!popup) {
             popup = document.createElement('div');
             popup.id = 'popup';
-            popup.style.position = 'absolute';
-            popup.style.backgroundColor = 'white';
-            popup.style.border = '1px solid black';
-            popup.style.padding = '10px';
-            popup.style.borderRadius = '5px';
-            popup.style.boxShadow = '2px 2px 5px rgba(0,0,0,0.2)';
-            popup.style.fontSize = '14px';
-            popup.style.fontFamily = 'monospace';
-            popup.style.whiteSpace = 'pre';
-            popup.style.maxHeight = '300px';
-            popup.style.overflowY = 'auto';
-            popup.style.display = 'none';
-            popup.style.pointerEvents = 'none';
-            popup.style.zIndex = '1000';
             document.body.appendChild(popup);
         }
+
+        // Estilos base comunes
+        const baseStyles = {
+            position: 'absolute',
+            backgroundColor: 'white',
+            border: '2px solid #333',
+            borderRadius: '8px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+            fontFamily: 'monospace',
+            whiteSpace: 'pre',
+            overflowY: 'auto',
+            display: 'block',
+            pointerEvents: 'none',
+            zIndex: '1000'
+        };
+
+        // Estilos específicos para cada tipo de elemento
+        const elementStyles = {
+            'Register': {
+                minWidth: '600px',
+                minHeight: '700px',
+
+                padding: '20px',
+                fontSize: '14px',
+                lineHeight: '1.5',
+                backgroundColor: '#f8f9fa'
+            },
+            'PC': {
+                minWidth: '150px',
+                maxWidth: '250px',
+                minHeight: '50px',
+                maxHeight: '100px',
+                padding: '10px',
+                fontSize: '16px',
+                backgroundColor: '#e9ecef'
+            },
+            'DataMem': {
+                minWidth: '350px',
+                maxWidth: '500px',
+                minHeight: '300px',
+                maxHeight: '500px',
+                padding: '15px',
+                fontSize: '14px',
+                backgroundColor: '#f1f3f5'
+            },
+            'Alu': {
+                minWidth: '200px',
+                maxWidth: '300px',
+                minHeight: '100px',
+                maxHeight: '200px',
+                padding: '15px',
+                fontSize: '14px',
+                backgroundColor: '#e3f2fd'
+            },
+            'InsMem': {
+                minWidth: '300px',
+                maxWidth: '450px',
+                minHeight: '150px',
+                maxHeight: '300px',
+                padding: '15px',
+                fontSize: '14px',
+                backgroundColor: '#fff3e0'
+            },
+            'default': {
+                minWidth: '200px',
+                maxWidth: '300px',
+                minHeight: '100px',
+                maxHeight: '200px',
+                padding: '10px',
+                fontSize: '14px',
+                backgroundColor: 'white'
+            }
+        };
+
+        // Aplicar estilos base
+        Object.assign(popup.style, baseStyles);
+
+        // Aplicar estilos específicos del elemento o los estilos por defecto
+        const specificStyles = elementStyles[elementType] || elementStyles['default'];
+        Object.assign(popup.style, specificStyles);
+
         popup.textContent = text;
-        
-        const x = event.clientX + 15;
-        const y = event.clientY + 15;
-        popup.style.left = `${x}px`;
-        popup.style.top = `${y}px`;
-        popup.style.display = 'block';
-        popup.style.width = '100px'; // Ajusta el ancho según sea necesario
-        popup.style.height = '600px'; // Ajusta la altura según sea necesario
-        popup.style.maxWidth = '700px'; // Ajusta el ancho máximo según sea necesario
-        popup.style.maxHeight = '900px'; // Ajusta la altura máxima según sea necesario
+
+        // Posicionamiento mejorado
+        const x = event.clientX + 20;
+        const y = event.clientY + 20;
+
+        // Asegurarse de que el popup no se salga de la ventana
+        const rect = popup.getBoundingClientRect();
+        const maxX = window.innerWidth - rect.width - 20;
+        const maxY = window.innerHeight - rect.height - 20;
+
+        popup.style.left = `${Math.min(x, maxX)}px`;
+        popup.style.top = `${Math.min(y, maxY)}px`;
     }
     
     function hidePopup() {
@@ -978,8 +1053,6 @@ document.addEventListener('DOMContentLoaded', function () {
         box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         font-size: 16px;           /* Texto más grande */
         font-family: Arial, sans-serif;
-        min-width: 150px;          /* Ancho mínimo más grande */
-        max-width: 250px;          /* Ancho máximo más grande */
         z-index: 99999;
         pointer-events: none;
         opacity: 1;
