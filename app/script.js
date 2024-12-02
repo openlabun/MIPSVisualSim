@@ -287,81 +287,128 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function processFiles(files) {
         const reader = new FileReader();
-
+    
         reader.onload = function (event) {
             const fileContent = event.target.result;
-            // Dividir el contenido en líneas y eliminar líneas vacías
+            console.log("Full file content:", fileContent);
+    
             const lines = fileContent.split('\n').filter(line => line.trim());
+    
+            // Check for Logisim RAM file formats
+            if (lines[0].startsWith('v2.0 raw') || lines[0].startsWith('v3.0')) {
+                processLogisimRAM(lines);
+            } else {
+                processMIPSInstructions(lines);
+            }
+        };
+    
+        reader.readAsText(files[0]);
+    }
+    
+    function processLogisimRAM(lines) {
+        // Debug logging
+        console.log("Processing Logisim RAM file");
+        console.log("Lines:", lines);
+    
+        // For 'v2.0 raw' format, the values are directly in the lines
+        const hexInstructions = lines.slice(1).flatMap(line => 
+            line.trim().split(/\s+/)
+        );
+    
+        console.log("Extracted hex instructions:", hexInstructions);
+    
+        // Find input elements safely
+        const hexInput = document.querySelector('#hex-input');
+        const mipsInput = document.querySelector('#mips-input');
+    
+        if (!hexInput || !mipsInput) {
+            console.error('Hex or MIPS input elements not found');
+            console.error('Hex input:', hexInput);
+            console.error('MIPS input:', mipsInput);
+            return;
+        }
+    
+        // Set hex instructions
+        hexInput.value = hexInstructions.join('\n');
+    
+        // Translate hex to MIPS
+        try {
+            translateHextoMIPS();
+        } catch (error) {
+            console.error('Error in translateHextoMIPS:', error);
+        }
+    }
 
-            // Traducir cada instrucción y construir las instrucciones traducidas
-            let translatedInstructions = '';
-            let originalInstructions = '';
+    function processMIPSInstructions(lines) {
+        let translatedInstructions = '';
+        let originalInstructions = '';
 
-            lines.forEach(line => {
-                const instruction = line.trim();
-                if (instruction) {
-                    // Convertir la instrucción MIPS a hexadecimal
-                    const hexInstruction = translateInstructionToHex(instruction);
-                    if (hexInstruction !== "Unknown Instruction" && hexInstruction !== "Invalid Syntax") {
-                        originalInstructions += `${instruction}\n`;
-                        translatedInstructions += `${hexInstruction}\n`;
-                    }
-                }
-            });
+    lines.forEach(line => {
+        const instruction = line.trim();
+        if (instruction) {
+            // Convertir la instrucción MIPS a hexadecimal
+            const hexInstruction = translateInstructionToHex(instruction);
+            if (hexInstruction !== "Unknown Instruction" && hexInstruction !== "Invalid Syntax") {
+                originalInstructions += `${instruction}\n`;
+                translatedInstructions += `${hexInstruction}\n`;
+            }
+        }
+    });
 
             // Establecer el valor de los textareas
             mipsInput.value = originalInstructions.trim();
             hexInput.value = translatedInstructions.trim();
 
-            console.log("Instrucciones originales:", originalInstructions);
-            console.log("Instrucciones en hexadecimal:", translatedInstructions);
-        };
-
-        reader.readAsText(files[0]);
+        console.log("Instrucciones originales:", originalInstructions);
+        console.log("Instrucciones en hexadecimal:", translatedInstructions);
     }
 
+    function updateMemoryDisplay(memory) {
+        const memoryTable = document.getElementById('ramTable');
+        const memRows = memoryTable.getElementsByTagName('tr');
 
-
-    function saveHexToFile() {
-        // Get the value of the inputHex textarea
-        const hexInstructions = hexInput.value.trim();
-
-        // Check if hexInstructions is empty
-        if (!hexInstructions) {
-            console.error("No instructions found in inputHex textarea.");
-            return;
+        for (let i = 1; i < memRows.length; i++) {
+            const address = i - 1;
+            const value = memory[address] || 0;
+            memRows[i].cells[0].textContent = `0x${address.toString(16).toUpperCase().padStart(2, '0')}`;
+            memRows[i].cells[1].textContent = `0x${value.toString(16).toUpperCase().padStart(8, '0')}`;
         }
-
-        // Split the hexInstructions by newline characters to get individual instructions
-        const instructionsArray = hexInstructions.split('\n');
-
-        // Join the instructions with a space to format them on the second line
-        const instructionsLine = instructionsArray.join(' ');
-
-        // Create a Blob with the hex instructions and instructions line
-        const blob = new Blob(['v2.0 raw\n' + instructionsLine], { type: 'text/plain' });
-
-        // Create a temporary anchor element to trigger the download
-        const anchor = document.createElement('a');
-        anchor.download = 'mips_instructions.hex';
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
     }
+
 
 
 
     function translateHextoMIPS() {
+        // Find input elements safely
+        const hexInput = document.querySelector('#hex-input');
+        const mipsInput = document.querySelector('#mips-input');
+    
+        if (!hexInput || !mipsInput) {
+            console.error('Input elements not found');
+            console.error('Hex input:', hexInput);
+            console.error('MIPS input:', mipsInput);
+            return;
+        }
+    
         const instructions = hexInput.value.trim().split('\n');
-
+        console.log("Instructions to translate:", instructions);
+    
         // Translate each hexadecimal instruction to MIPS
         const translatedInstructions = instructions.map(instruction => {
-            return translateInstructionToMIPS(instruction.trim());
+            try {
+                const mipsInstruction = translateInstructionToMIPS(instruction.trim());
+                console.log(`Hex: ${instruction}, MIPS: ${mipsInstruction}`);
+                return mipsInstruction;
+            } catch (error) {
+                console.error(`Error translating instruction ${instruction}:`, error);
+                return `Error translating: ${instruction}`;
+            }
         });
-
+    
         // Join the translated instructions with a newline character
         const formattedInstructions = translatedInstructions.join('\n');
-
-        // Set the value of the input textarea to the formatted instructions
+    
+        // Set the value of the mips textarea to the formatted instructions
         mipsInput.value = formattedInstructions;
     }
 
@@ -454,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
         if (svgObject) {
             const svgDoc = svgObject.contentDocument;
-            const allElements = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst', 'DataMem', 'muxBranch', 'muxPC'];
+            const allElements = ['PC', 'InsMem', 'Register', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst', 'DataMem', 'muxBranch', 'muxPC'];
     
             // Paso 1: Limpiar popups y eventos anteriores
             allElements.forEach(id => {
@@ -470,52 +517,68 @@ document.addEventListener('DOMContentLoaded', function () {
             // Paso 2: Determinar los elementos a mostrar según la instrucción
             let elementsToShow = [];
             let popupTexts = [];
-    
+            console.log(registers[Object.keys(registers)[0]]);
             if (op === 'add' || op === 'sub' || op === 'and' || op === 'or' || op === 'slt') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'AluCont', 'Alu', 'mux-aluSRC'];
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${JSON.stringify(registers)}`,
+                    `Registers: ${(registers)}`,
                     `ALU Control: ${op}`,
                     `ALU: ${operands.join(', ')}`,
                     `MUX ALU Source: ${operands[2]}`
                 ];
             } else if (op === 'addi' || op === 'andi' || op === 'ori' || op === 'slti') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst'];
+                
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${JSON.stringify(registers)}`,
+                    `Registers: ${(registers)}`,
                     `ALU Control: ${op}`,
                     `ALU: ${operands.join(', ')}`,
                     `MUX ALU Source: ${operands[2]}`,
                     `MUX RegDst: ${operands[0]}`
                 ];
             } else if (op === 'lw') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'mux-aluSRC', 'DataMem'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'mux-aluSRC', 'DataMem'];
+                let memoryList = [];
+
+                // Llenar la lista con las direcciones y valores en formato tabular
+                for (let i = 0; i < 32; i++) {
+                    let entry = `Dirección 0x${i.toString(16).padStart(2, '0')} | Valor 0x${memory[i].toString(16).padStart(2, '0')}`;
+                    memoryList.push(entry);
+                }
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${registers}`,
+                    `Registers: ${JSON.stringify(registers)}`,
                     `MUX ALU Source: ${operands[2]}`,
-                    `Data Memory: ${(Object.values(memory))}`
+                    `Data Memory: ${memoryList}`
                 ];
             } else if (op === 'sw') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'mux-aluSRC', 'DataMem', 'Alu'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'mux-aluSRC', 'DataMem', 'Alu'];
+                let memoryList = [];
+
+                // Llenar la lista con las direcciones y valores en formato tabular
+                for (let i = 0; i < 32; i++) {
+                    let entry = `Dirección 0x${i.toString(16).padStart(2, '0')} | Valor 0x${memory[i].toString(16).padStart(2, '0')}`;
+                    memoryList.push(entry);
+                }
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
-                    `Registers: ${registers}`,
+                    `Registers: ${JSON.stringify(registers)}`,
                     `MUX ALU Source: ${operands[2]}`,
-                    `Data Memory: ${(Object.values(memory))}`,
+                    `Data Memory: ${memoryList}`,
                     `ALU: ${operands.join(', ')}`
                 ];
             } else if (op === 'beq' || op === 'bne') {
-                elementsToShow = ['PC', 'Registers', 'Alu', 'mux-aluSRC', 'muxBranch'];
+                elementsToShow = ['PC', 'Register', 'Alu', 'mux-aluSRC', 'muxBranch'];
+                
                 popupTexts = [
                     `PC: ${PC}`,
-                    `Registers: ${registers}`,
+                     `Registers: ${JSON.stringify(registers)}`,
                     `ALU: ${operands.join(', ')}`,
                     `MUX ALU Source: ${operands[2]}`,
                     `MUX Branch: ${op}`
@@ -530,11 +593,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             elementsToShow.forEach((id, index) => {
                 const element = svgDoc.getElementById(id);
+                console.log(id);
+                console.log(element);
                 if (element) {
                     element.style.visibility = 'visible';
     
                     element._mouseenterHandler = (event) => {
-                        if (id === 'Registers') {
+                        if (id === 'Register') {
                             console.log("Estado actual de los registros:", registers);
                             // Formato especial para los registros
                             const registersText = [
@@ -556,9 +621,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                 `$sp: 0x${registers.sp.toString(16).padStart(8, '0')}`,
                                 `$fp: 0x${registers.fp.toString(16).padStart(8, '0')}`
                             ].join('\n');
-                            showPopup(event, registersText);
+                            showPopup(event, registersText, "Register");
+                        } else if (id === 'PC') {
+                            showPopup(event, popupTexts[index], 'PC');
+                        } else if (id === 'DataMem') {
+                            showPopup(event, popupTexts[index], 'DataMem');
+                        } else if (id === 'Alu') {
+                            showPopup(event, popupTexts[index], 'Alu');
+                        } else if (id === 'InsMem') {
+                            showPopup(event, popupTexts[index], 'InsMem');
                         } else {
-                            showPopup(event, popupTexts[index]);
+                            showPopup(event, popupTexts[index], 'default');
                         }
                     };
                     element._mouseleaveHandler = hidePopup;
@@ -598,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 eventVisible(instruction);
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] + registers[rt];
+                //
                 break;
             }
             case 'sub': {
@@ -855,7 +929,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const elementsWithPopups = {
             'PC': 'Program Counter',
             'InsMem': 'Instruction Memory',
-            'Registers': 'Registers',
+            'Register': 'Registers',
             'AluCont': 'ALU Control',
             'Alu': 'Arithmetic Logic Unit',
             'mux-aluSRC': 'MUX ALU Source',
@@ -894,8 +968,6 @@ document.addEventListener('DOMContentLoaded', function () {
         popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
         popup.style.fontSize = '14px';
         popup.style.fontFamily = 'Arial, sans-serif';
-        popup.style.minWidth = '100px';
-        popup.style.maxWidth = '200px';
         
         // Asegurarse de que sea visible
         popup.style.opacity = '1';
@@ -906,34 +978,106 @@ document.addEventListener('DOMContentLoaded', function () {
         return popup;
     }
 
-    function showPopup(event, text) {
+    function showPopup(event, text, elementType) {
         if (!popup) {
             popup = document.createElement('div');
             popup.id = 'popup';
-            popup.style.position = 'absolute';
-            popup.style.backgroundColor = 'white';
-            popup.style.border = '1px solid black';
-            popup.style.padding = '10px';
-            popup.style.borderRadius = '5px';
-            popup.style.boxShadow = '2px 2px 5px rgba(0,0,0,0.2)';
-            popup.style.fontSize = '14px';
-            popup.style.fontFamily = 'monospace';
-            popup.style.whiteSpace = 'pre';
-            popup.style.maxHeight = '300px';
-            popup.style.overflowY = 'auto';
-            popup.style.display = 'none';
-            popup.style.pointerEvents = 'none';
-            popup.style.zIndex = '1000';
             document.body.appendChild(popup);
         }
-    
+
+        // Estilos base comunes
+        const baseStyles = {
+            position: 'absolute',
+            backgroundColor: 'white',
+            border: '2px solid #333',
+            borderRadius: '8px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+            fontFamily: 'monospace',
+            whiteSpace: 'pre',
+            overflowY: 'auto',
+            display: 'block',
+            pointerEvents: 'none',
+            zIndex: '1000'
+        };
+
+        // Estilos específicos para cada tipo de elemento
+        const elementStyles = {
+            'Register': {
+                minWidth: '600px',
+                minHeight: '700px',
+
+                padding: '20px',
+                fontSize: '14px',
+                lineHeight: '1.5',
+                backgroundColor: '#f8f9fa'
+            },
+            'PC': {
+                minWidth: '150px',
+                maxWidth: '250px',
+                minHeight: '50px',
+                maxHeight: '100px',
+                padding: '10px',
+                fontSize: '16px',
+                backgroundColor: '#e9ecef'
+            },
+            'DataMem': {
+                minWidth: '350px',
+                maxWidth: '500px',
+                minHeight: '300px',
+                maxHeight: '500px',
+                padding: '15px',
+                fontSize: '14px',
+                backgroundColor: '#f1f3f5'
+            },
+            'Alu': {
+                minWidth: '200px',
+                maxWidth: '300px',
+                minHeight: '100px',
+                maxHeight: '200px',
+                padding: '15px',
+                fontSize: '14px',
+                backgroundColor: '#e3f2fd'
+            },
+            'InsMem': {
+                minWidth: '300px',
+                maxWidth: '450px',
+                minHeight: '150px',
+                maxHeight: '300px',
+                padding: '15px',
+                fontSize: '14px',
+                backgroundColor: '#fff3e0'
+            },
+            'default': {
+                minWidth: '200px',
+                maxWidth: '300px',
+                minHeight: '100px',
+                maxHeight: '200px',
+                padding: '10px',
+                fontSize: '14px',
+                backgroundColor: 'white'
+            }
+        };
+
+        // Aplicar estilos base
+        Object.assign(popup.style, baseStyles);
+
+        // Aplicar estilos específicos del elemento o los estilos por defecto
+        const specificStyles = elementStyles[elementType] || elementStyles['default'];
+        Object.assign(popup.style, specificStyles);
+
         popup.textContent = text;
-        
-        const x = event.clientX + 15;
-        const y = event.clientY + 15;
-        popup.style.left = `${x}px`;
-        popup.style.top = `${y}px`;
-        popup.style.display = 'block';
+
+        // Posicionamiento mejorado
+        const x = event.clientX + 20;
+        const y = event.clientY + 20;
+
+        // Asegurarse de que el popup no se salga de la ventana
+        const rect = popup.getBoundingClientRect();
+        const maxX = window.innerWidth - rect.width - 20;
+        const maxY = window.innerHeight - rect.height - 20;
+
+        popup.style.left = `${Math.min(x, maxX)}px`;
+        popup.style.top = `${Math.min(y, maxY)}px`;
     }
     
     function hidePopup() {
@@ -956,8 +1100,6 @@ document.addEventListener('DOMContentLoaded', function () {
         box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         font-size: 16px;           /* Texto más grande */
         font-family: Arial, sans-serif;
-        min-width: 150px;          /* Ancho mínimo más grande */
-        max-width: 250px;          /* Ancho máximo más grande */
         z-index: 99999;
         pointer-events: none;
         opacity: 1;
