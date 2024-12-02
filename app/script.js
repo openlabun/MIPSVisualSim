@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
         if (svgObject) {
             const svgDoc = svgObject.contentDocument;
-            const allElements = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst', 'DataMem', 'muxBranch', 'muxPC'];
+            const allElements = ['PC', 'InsMem', 'Register', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst', 'DataMem', 'muxBranch', 'muxPC'];
     
             // Paso 1: Limpiar popups y eventos anteriores
             allElements.forEach(id => {
@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let popupTexts = [];
             console.log(registers[Object.keys(registers)[0]]);
             if (op === 'add' || op === 'sub' || op === 'and' || op === 'or' || op === 'slt') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'AluCont', 'Alu', 'mux-aluSRC'];
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
@@ -482,7 +482,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     `MUX ALU Source: ${operands[2]}`
                 ];
             } else if (op === 'addi' || op === 'andi' || op === 'ori' || op === 'slti') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'AluCont', 'Alu', 'mux-aluSRC', 'muxRegDst'];
+                
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
@@ -493,26 +494,41 @@ document.addEventListener('DOMContentLoaded', function () {
                     `MUX RegDst: ${operands[0]}`
                 ];
             } else if (op === 'lw') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'mux-aluSRC', 'DataMem'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'mux-aluSRC', 'DataMem'];
+                let memoryList = [];
+
+                // Llenar la lista con las direcciones y valores en formato tabular
+                for (let i = 0; i < 32; i++) {
+                    let entry = `Dirección 0x${i.toString(16).padStart(2, '0')} | Valor 0x${memory[i].toString(16).padStart(2, '0')}`;
+                    memoryList.push(entry);
+                }
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
                     `Registers: ${JSON.stringify(registers)}`,
                     `MUX ALU Source: ${operands[2]}`,
-                    `Data Memory: ${(Object.values(memory))}`
+                    `Data Memory: ${memoryList}`
                 ];
             } else if (op === 'sw') {
-                elementsToShow = ['PC', 'InsMem', 'Registers', 'mux-aluSRC', 'DataMem', 'Alu'];
+                elementsToShow = ['PC', 'InsMem', 'Register', 'mux-aluSRC', 'DataMem', 'Alu'];
+                let memoryList = [];
+
+                // Llenar la lista con las direcciones y valores en formato tabular
+                for (let i = 0; i < 32; i++) {
+                    let entry = `Dirección 0x${i.toString(16).padStart(2, '0')} | Valor 0x${memory[i].toString(16).padStart(2, '0')}`;
+                    memoryList.push(entry);
+                }
                 popupTexts = [
                     `PC: ${PC}`,
                     `${instruction}`,
                     `Registers: ${JSON.stringify(registers)}`,
                     `MUX ALU Source: ${operands[2]}`,
-                    `Data Memory: ${(Object.values(memory))}`,
+                    `Data Memory: ${memoryList}`,
                     `ALU: ${operands.join(', ')}`
                 ];
             } else if (op === 'beq' || op === 'bne') {
-                elementsToShow = ['PC', 'Registers', 'Alu', 'mux-aluSRC', 'muxBranch'];
+                elementsToShow = ['PC', 'Register', 'Alu', 'mux-aluSRC', 'muxBranch'];
+                
                 popupTexts = [
                     `PC: ${PC}`,
                      `Registers: ${JSON.stringify(registers)}`,
@@ -530,11 +546,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             elementsToShow.forEach((id, index) => {
                 const element = svgDoc.getElementById(id);
+                console.log(id);
+                console.log(element);
                 if (element) {
                     element.style.visibility = 'visible';
     
                     element._mouseenterHandler = (event) => {
-                        if (id === 'Registers') {
+                        if (id === 'Register') {
                             console.log("Estado actual de los registros:", registers);
                             // Formato especial para los registros
                             const registersText = [
