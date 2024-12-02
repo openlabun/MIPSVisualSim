@@ -39,24 +39,24 @@ img.addEventListener('mousemove', function (e) {
     let text = '';
     let value = 0
 
-    if (292<x && x<320 && 286<y && y<330 ) {
+    if (292 < x && x < 320 && 286 < y && y < 330) {
         text += `PC: ${PC}`;
-    } else if (308<x && x<345 && 220<y && y<253 ) {
+    } else if (308 < x && x < 345 && 220 < y && y < 253) {
         text += `SUM1: ${sum1}`;
-    } else if (445<x && x<473 &&300<y && y<310 ) {
+    } else if (445 < x && x < 473 && 300 < y && y < 310) {
         text += `RS: ${gen_rs}`;
-    } else if (445<x && x<473 &&325<y && y<340 ) {
+    } else if (445 < x && x < 473 && 325 < y && y < 340) {
         text += `RT: ${gen_rt}`;
-    } else if (445<x && x<473 &&358<y && y<372 ) {
+    } else if (445 < x && x < 473 && 358 < y && y < 372) {
         text += `RD: ${gen_rd}`;
-    } else if (632<x && x<672 &&366<y && y<380 ) {
+    } else if (632 < x && x < 672 && 366 < y && y < 380) {
         text += `Offset: ${gen_offset}`;
-    } else if (37<x && x<76 &&311<y && y<327 ) {
+    } else if (37 < x && x < 76 && 311 < y && y < 327) {
         text += `Offset: ${gen_offset}`;
-    } else if (180<x && x<215 &&328<y && y<353 ) {
+    } else if (180 < x && x < 215 && 328 < y && y < 353) {
         text += `Jump: ${gen_offset}`;
-    } 
-        
+    }
+
     //text+=` ${x} ${y}`
 
     textOverlay.textContent = text;
@@ -644,6 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function runSimulation() {
+
     console.log('Running simulation...');
     // Reset state before running
     resetSimulation();
@@ -701,6 +702,14 @@ function stepSimulation() {
 }
 
 function resetSimulation() {
+    let PC = 0;
+    let sum1 = 0;
+    let gen_rs = 0
+    let gen_rt = 0
+    let gen_rd = 0
+    let gen_regdst = 0
+    let gen_offset = 0
+    let gen_jumpad = 0
     console.log('Resetting simulation...');
     currentInstructionIndex = 0;
 
@@ -744,7 +753,7 @@ function executeInstruction(instruction) {
     const [rs, rt, immediate] = operands;
     const immValue = parseInt(immediate, 16);
 
-    PC = currentInstructionIndex*4
+    PC = currentInstructionIndex * 4
     sum1 = PC + 4
     try {
         switch (op) {
