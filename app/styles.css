@@ -252,7 +252,7 @@ button:disabled, .debugger-button:disabled {
     width: 12.5%;
     top: 3.5%;
     left: 38.7%;
-    opacity: 30%;
+    opacity: 20%;
     border-radius: 5px;
 }
 
@@ -263,7 +263,7 @@ button:disabled, .debugger-button:disabled {
     width: 2.4%;
     top: 33%;
     left: 2.4%;
-    opacity: 30%;
+    opacity: 20%;
     border-radius: 5px;
 }
 
@@ -274,7 +274,7 @@ button:disabled, .debugger-button:disabled {
     width: 9%;
     top: 35%;
     left: 51%;
-    opacity: 30%;
+    opacity: 20%;
     border-radius: 5px;
 }
 
@@ -285,7 +285,7 @@ button:disabled, .debugger-button:disabled {
     width: 6.4%;
     top: 84.3%;
     left: 67.2%;
-    opacity: 30%;
+    opacity: 20%;
     border-radius: 5px;
 }
 
@@ -296,7 +296,7 @@ button:disabled, .debugger-button:disabled {
     width: 6.2%;
     top: 45.5%;
     left: 71.3%;
-    opacity: 30%;
+    opacity: 20%;
     border-radius: 5px;
 }
 
@@ -307,7 +307,7 @@ button:disabled, .debugger-button:disabled {
     width: 11%;
     top: 40.5%;
     left: 29.4%;
-    opacity: 30%;
+    opacity: 20%;
     border-radius: 5px;
 }
 
