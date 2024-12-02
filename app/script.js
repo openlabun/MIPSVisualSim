@@ -1,4 +1,3 @@
-
 function translateInstructionToHex(instruction) {
     const opcodeMap = {
         "add": "000000", "sub": "000000", "slt": "000000", "and": "000000", "or": "000000",
@@ -203,6 +202,9 @@ function sum(a, b) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Initialize tables when the page loads
+    initializeTables();
+
     const mipsInput = document.getElementById('mips-input');
     const hexInput = document.getElementById('hex-input');
     const simulateMipsButton = document.getElementById('simulate-mips-button');
@@ -211,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     simulateMipsButton.addEventListener('click', simulateMIPS);
-
 
     // Get references to the drop area and the file input
     const dropArea = document.getElementById('dropArea');
@@ -265,8 +266,6 @@ document.addEventListener('DOMContentLoaded', function () {
         processFiles(files);
     }
 
-
-
     // Optional: You can add hover effect to the drop area
     dropArea.addEventListener('mouseenter', () => {
         dropArea.style.backgroundColor = '#f0f0f0';
@@ -309,8 +308,6 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.readAsText(files[0]);
     }
 
-
-
     function saveHexToFile() {
         // Get the value of the inputHex textarea
         const hexInstructions = hexInput.value.trim();
@@ -336,8 +333,6 @@ document.addEventListener('DOMContentLoaded', function () {
         anchor.href = window.URL.createObjectURL(blob);
         anchor.click();
     }
-
-
 
     function translateHextoMIPS() {
         const instructions = hexInput.value.trim().split('\n');
@@ -379,44 +374,60 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-
-
-
-    function translateMIPStoHex() {
-        const instructions = mipsInput.value.trim().split('\n');
-
-        // Translate each MIPS instruction to hexadecimal
-        const translatedInstructions = instructions.map(instruction => {
-            return translateInstructionToHex(instruction.trim());
-        });
-
-        // Join the translated instructions with a newline character
-        const formattedInstructions = translatedInstructions.join('\n');
-
-        // Set the value of the inputHex textarea to the formatted instructions
-        hexInput.value = formattedInstructions;
+    function initializeTables() {
+        initializeRAMTable();
+        initializeRegisterTable();
     }
 
+    function initializeRAMTable() {
+        const ramTableBody = document.querySelector('#ramTable tbody');
+        ramTableBody.innerHTML = '';
+        
+        // Generate RAM table rows (16 rows from 0x00 to 0x0F)
+        for (let i = 0; i < 16; i++) {
+            const row = document.createElement('tr');
+            const addressCell = document.createElement('td');
+            const valueCell = document.createElement('td');
+            
+            addressCell.textContent = `0x${i.toString(16).padStart(2, '0').toUpperCase()}`;
+            valueCell.textContent = '0x00';
+            
+            row.appendChild(addressCell);
+            row.appendChild(valueCell);
+            ramTableBody.appendChild(row);
+        }
+    }
 
-
-    // Initialize registers and memory
-    let registers = {
-        zero: 0, at: 0, v0: 0, v1: 0,
-        a0: 0, a1: 0, a2: 0, a3: 0,
-        t0: 0, t1: 0, t2: 0, t3: 0,
-        t4: 0, t5: 0, t6: 0, t7: 0,
-        s0: 0, s1: 0, s2: 0, s3: 0,
-        s4: 0, s5: 0, s6: 0, s7: 0,
-        t8: 0, t9: 0, k0: 0, k1: 0,
-        gp: 0, sp: 0, fp: 0, ra: 0
-    };
-    let memory = Array.from({ length: 32 }).reduce((acc, curr, i) => ({ ...acc, [i]: 0 }), {});
-
-    // SIMULATION FUNCTIONS
+    function initializeRegisterTable() {
+        const registerTableBody = document.querySelector('#registerTable tbody');
+        registerTableBody.innerHTML = '';
+        
+        // Define register names
+        const registers = [
+            'zero', 'at', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3',
+            't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7',
+            's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7',
+            't8', 't9', 'k0', 'k1', 'gp', 'sp', 'fp', 'ra'
+        ];
+        
+        // Generate register table rows
+        registers.forEach(reg => {
+            const row = document.createElement('tr');
+            const nameCell = document.createElement('td');
+            const valueCell = document.createElement('td');
+            
+            nameCell.textContent = reg;
+            valueCell.textContent = '0x00';
+            
+            row.appendChild(nameCell);
+            row.appendChild(valueCell);
+            registerTableBody.appendChild(row);
+        });
+    }
 
     function simulateMIPS() {
-        // Scroll to the simulation tables
-        simulationTables.scrollIntoView({ behavior: 'smooth' });
+        // Scroll to the datapath section
+        document.getElementById('datapath-section').scrollIntoView({ behavior: 'smooth' });
 
         // Get the value of the inputHex textarea and split it into instructions
         const hexInstructions = mipsInput.value.trim().split('\n');
@@ -519,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
     updateDebuggerInfo();
 
     function stepMIPS() {
-
 
         // Get the value of the inputHex textarea and split it into instructions
         const hexInstructions = mipsInput.value.trim().split('\n');

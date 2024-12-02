@@ -1,11 +1,13 @@
 :root {
     --color-primary: #8A4D76;
-    /* Lila */
     --color-secondary: #4A4E69;
     --color-accent: #9A8C98;
     --color-background: #F2E9E4;
     --color-text: #22223B;
     --color-light: #C9ADA7;
+    --component-bg: #f0f0f0;
+    --border-color: #666;
+    --container-bg: #F8F4F8;
 }
 
 body {
@@ -33,7 +35,7 @@ h1 {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: var(--container-bg);
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
 }
@@ -100,55 +102,90 @@ button:active {
 }
 
 #simulation-tables {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     justify-content: space-between;
+    margin: 20px 0;
 }
 
 .table-container {
-    flex: 1;
-    min-width: 300px;
-    background-color: #fff;
+    background-color: var(--container-bg);
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
 }
 
-table {
+.table-container h2 {
+    margin: 0;
+    padding: 10px;
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.table-scroll-container {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.table-container table {
     width: 100%;
     border-collapse: collapse;
 }
 
-th,
-td {
+.table-container thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--color-primary);
+}
+
+.table-container th,
+.table-container td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid var(--color-light);
 }
 
-th {
-    background-color: var(--color-primary);
+.table-container th {
     color: #fff;
     font-weight: bold;
 }
 
-tr:nth-child(even) {
+.table-container tr:nth-child(even) {
     background-color: var(--color-background);
 }
 
 #debugger {
-    background-color: #fff;
+    background-color: var(--container-bg);
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    margin-bottom: 20px;
+    height: calc(400px - 40px);
+    display: flex;
+    flex-direction: column;
 }
 
 .debugger-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    height: 100%;
+}
+
+.debugger-info {
+    background-color: var(--color-background);
+    padding: 10px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.debugger-info p {
+    margin: 5px 0;
 }
 
 .debugger-buttons {
@@ -166,15 +203,65 @@ tr:nth-child(even) {
     background-color: var(--color-accent);
 }
 
-.debugger-info {
-    background-color: var(--color-background);
-    padding: 10px;
-    border-radius: 4px;
-    font-family: 'Courier New', monospace;
+.datapath-container {
+    margin: 20px;
+    padding: 20px;
+    background-color: var(--container-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-.debugger-info p {
-    margin: 5px 0;
+.datapath {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background-color: var(--container-bg);
+    padding: 5px;
+}
+
+.datapath-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.component {
+    position: relative;
+    padding: 6px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9em;
+    z-index: 2;
+}
+
+.separator {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #6b4b7c, transparent);
+    margin: 20px 0;
+}
+
+@media (max-width: 1200px) {
+    .datapath {
+        transform: scale(0.9);
+    }
+}
+
+@media (max-width: 992px) {
+    .datapath {
+        transform: scale(0.8);
+    }
+}
+
+@media (max-width: 768px) {
+    .datapath {
+        transform: scale(0.7);
+    }
 }
 
 @media (max-width: 768px) {
