@@ -32,6 +32,8 @@
         .debugger-buttons button {
             margin: 5px;
         }
+
+
     </style>
 </head>
 
@@ -54,7 +56,7 @@
         <!-- Sección de la parte inferior -->
         <div class="row">
             <!-- Sección de Ingreso de Instrucciones y Arrastrar Archivo (Izquierda) -->
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <!-- Ingreso de Instrucciones MIPS -->
                 <div class="mb-4">
                     <textarea class="form-control" id="mips-input" placeholder="Enter MIPS instructions here..." rows="10"></textarea>
@@ -66,7 +68,6 @@
                 </div>
                 <button id="simulate-mips-button" class="btn btn-primary w-100">Simulate MIPS</button>
             </div>
-
             <!-- Sección del Debugger (Centro) -->
             <div class="col-md-4">
                 <div id="debugger">
@@ -86,227 +87,231 @@
                     </div>
                 </div>
             </div>
-
             <!-- Sección de Registros y Memoria (Derecha) -->
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="table-container-wrapper">
                     <!-- Tabla de Registros -->
                     <div class="table-container">
-                        <table class="table table-bordered" id="registerTable">
-                            <thead>
-                                <tr>
-                                    <th>Register</th>
-                                    <th>Value</th>
-                                </tr>
-                                <tr>
-                                    <td>zero</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>at</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>v0</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>v1</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>a0</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>a1</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>a2</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>a3</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t0</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t1</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t2</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t3</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t4</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t5</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t6</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t7</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s0</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s1</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s2</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s3</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s4</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s5</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s6</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>s7</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t8</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>t9</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>k0</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>k1</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>gp</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>sp</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>fp</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>ra</td>
-                                    <td>0x00</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-scroll">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Register</th>
+                                        <th>Value</th>
+                                    </tr>
+                                    <tr>
+                                        <td>zero</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>at</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>v0</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>v1</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>a0</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>a1</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>a2</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>a3</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t0</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t1</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t2</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t3</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t4</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t5</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t6</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t7</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s0</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s1</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s2</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s3</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s4</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s5</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s6</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>s7</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t8</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>t9</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>k0</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>k1</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>gp</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>sp</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>fp</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ra</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>   
                     </div>
-
-                    <!-- Tabla de RAM -->
                     <div class="table-container">
-                        <table class="table table-bordered" id="ramTable">
-                            <thead>
-                                <tr>
-                                    <th>Address</th>
-                                    <th>Value</th>
-                                </tr>
-                                <tr>
-                                    <td>0x00</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x01</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x02</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x03</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x04</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x05</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x06</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x07</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x08</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x09</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x0A</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x0B</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x0C</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x0D</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x0E</td>
-                                    <td>0x00</td>
-                                </tr>
-                                <tr>
-                                    <td>0x0F</td>
-                                    <td>0x00</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-scroll">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Address</th>
+                                        <th>Value</th>
+                                    </tr>
+                                    <tr>
+                                        <td>0x00</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x01</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x02</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x03</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x04</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x05</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x06</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x07</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x08</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x09</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x0A</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x0B</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x0C</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x0D</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x0E</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>0x0F</td>
+                                        <td>0x00</td>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
+                </div>
+                
             </div>
+
         </div>
     </div>
 
