@@ -7,20 +7,40 @@ body {
 h1 {
     text-align: center;
     margin-bottom: 20px;
-    color: #235a5b; /* Color del encabezado */
+    color: #ffffff; /* Color del encabezado */
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap'); /* Fuente Google */
 
 .fixed-header {
     position: fixed;
     top: 0;
     width: 100%;
-    background-color: #e6f2f2; /* Fondo suave que combina con #235a5b */
-    padding: 10px;
+    background: linear-gradient(90deg, #235a5b, #1e4f50); /* Degradado horizontal */
+    padding: 15px 20px;
     z-index: 1000;
     text-align: center;
-    border-bottom: 2px solid #235a5b;
+    border-bottom: 3px solid #1e4f50;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    font-family: 'Roboto', sans-serif; /* Cambia la fuente */
+    font-size: 1.5rem; /* Ajusta el tamaño de fuente */
+    color: #ffffff; /* Texto blanco */
+    text-transform: uppercase; /* Texto en mayúsculas */
+    letter-spacing: 2px; /* Espaciado entre letras */
 }
 
+.fixed-header h1 {
+    margin: 0;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Sombra del texto */
+}
+
+.fixed-header:hover {
+    background: linear-gradient(90deg, #1e4f50, #235a5b); /* Cambia el degradado al pasar el mouse */
+    transition: all 0.3s ease-in-out; /* Suaviza el cambio de estilo */
+}
+
+#-----------------------------------------------------------------------------------
 .main-content {
     margin-top: 120px; /* Compensar el header fijo */
 }
@@ -204,9 +224,6 @@ button:disabled, .debugger-button:disabled {
 }
 
 .table {
-}
-
-.table {
     color: #235a5b;
     background-color: rgba(255, 255, 255, 0.8);
     border-collapse: collapse;
@@ -256,6 +273,7 @@ button:disabled, .debugger-button:disabled {
     border-radius: 5px;
 }
 
+  
 .ind_pc {
     position: absolute;
     z-index: 50;
@@ -319,4 +337,5 @@ button:disabled, .debugger-button:disabled {
     border-radius: 5px;
     padding: 5px 10px;
 }
+
 }
