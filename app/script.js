@@ -565,40 +565,55 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnALU = document.getElementById('btn-alu');
     const btnInstructionRegisters = document.getElementById('btn-inst-registers');
 
-    // Función para actualizar el contenido de los botones
     function updateButtonContent(button, content) {
         if (button) {
-            button.innerText = content;
+            // Construir una lista de pares clave-valor
+            let formattedContent = '';
+            for (const [key, value] of Object.entries(content)) {
+                formattedContent += `${key}: ${value}\n`; // Formato "nombre: valor"
+            }
+    
+            // Actualizar el texto del botón
+            button.innerHTML = `<span>${formattedContent.trim()}</span>`;
         }
     }
 
     // Asignar eventos a los botones
-    btnControlUnit.addEventListener('click', () => {
-        doPartTwo(hexToBinary(translateInstructionToHex(currentInstruction))); // Procesa la instrucción actual
-        updateButtonContent(btnControlUnit, JSON.stringify(controlUnit, null, 2));
-    });
+btnControlUnit.addEventListener('click', () => {
+    // Procesar la instrucción actual para obtener señales de la unidad de control
+    doPartTwo(hexToBinary(translateInstructionToHex(currentInstruction)));
+    // Mostrar solo los nombres y valores de las señales de la unidad de control
+    updateButtonContent(btnControlUnit, controlUnit);
+});
 
-    btnRegisters.addEventListener('click', () => {
-        updateButtonContent(btnRegisters, JSON.stringify(registers, null, 2));
-    });
 
-    btnPC.addEventListener('click', () => {
-        updateButtonContent(btnPC, `PC: ${PC}`);
-    });
+btnPC.addEventListener('click', () => {
+    // Mostrar el valor actual del Program Counter (PC)
+    updateButtonContent(btnPC, { PC }); // { PC } para mantener formato "nombre: valor"
+});
 
-    btnALUControl.addEventListener('click', () => {
-        doPartThree(); // Procesa señales de la ALU
-        updateButtonContent(btnALUControl, `ALU Control: ${ALURegUnitParts.outputAluC || "N/A"}`);
-    });
+btnALUControl.addEventListener('click', () => {
+    // Procesar señales de la ALU
+    doPartThree();
+    // Mostrar el código de control de la ALU
+    updateButtonContent(btnALUControl, { "ALU Control": ALURegUnitParts.outputAluC || "N/A" });
+});
 
-    btnALU.addEventListener('click', () => {
-        updateButtonContent(btnALU, `ALU Output: ${ALURegUnitParts.outALU || "N/A"}`);
-    });
+btnALU.addEventListener('click', () => {
+    // Mostrar la salida actual de la ALU
+    updateButtonContent(btnALU, { "\n ALU Output\n": ALURegUnitParts.outALU || "N/A" });
+});
 
-    btnInstructionRegisters.addEventListener('click', () => {
-        updateButtonContent(btnInstructionRegisters, JSON.stringify(instructionParts, null, 2));
-    });
+btnInstructionRegisters.addEventListener('click', () => {
+    // Mostrar los registros de la instrucción actual
+    updateButtonContent(btnInstructionRegisters, instructionParts);
+});
 
+
+
+
+
+    
     // Initialize the program counter (PC) and history stack
     // TODO: DEACTIVATE THE DEBUGGER WHEN COMPLETE THE SIMULATION, SINCE IT DOES NOT USE THE PROGRAM COUNTER
     let PC = 0;

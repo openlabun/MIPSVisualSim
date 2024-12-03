@@ -241,11 +241,7 @@ button:disabled, .debugger-button:disabled {
     padding: 5px
 ;}  
 
-.image-container { 
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    margin-left: 72px;
+
 .image-container { 
     position: relative;
     display: inline-block;
@@ -269,20 +265,22 @@ button:disabled, .debugger-button:disabled {
     width: 12.5%;
     top: 3.5%;
     left: 38.7%;
-    opacity: 20%;
+    opacity: 100%;
     border-radius: 5px;
+    color: #235a5b;
 }
 
   
 .ind_pc {
     position: absolute;
     z-index: 50;
-    height: 15%;
+    height: 12%;
     width: 2.4%;
-    top: 33%;
+    top: 36.5%;
     left: 2.4%;
-    opacity: 20%;
+    opacity: 100%;
     border-radius: 5px;
+    color: #235a5b;
 }
 
 .ind_registers {
@@ -292,8 +290,9 @@ button:disabled, .debugger-button:disabled {
     width: 9%;
     top: 35%;
     left: 51%;
-    opacity: 20%;
+    opacity: 100%;
     border-radius: 5px;
+    color: #235a5b;
 }
 
 .ind_alucontrol {
@@ -303,8 +302,9 @@ button:disabled, .debugger-button:disabled {
     width: 6.4%;
     top: 84.3%;
     left: 67.2%;
-    opacity: 20%;
+    opacity: 100%;
     border-radius: 5px;
+    color: #235a5b;
 }
 
 .ind_alu {
@@ -314,8 +314,9 @@ button:disabled, .debugger-button:disabled {
     width: 6.2%;
     top: 45.5%;
     left: 71.3%;
-    opacity: 20%;
+    opacity: 100%;
     border-radius: 5px;
+    color: #235a5b;
 }
 
 .ind_instregisters {
@@ -325,8 +326,9 @@ button:disabled, .debugger-button:disabled {
     width: 11%;
     top: 40.5%;
     left: 29.4%;
-    opacity: 20%;
+    opacity: 100%;
     border-radius: 5px;
+    color: #235a5b;
 }
 
 .btn-overlay {
@@ -336,6 +338,13 @@ button:disabled, .debugger-button:disabled {
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 5px;
     padding: 5px 10px;
+    color: #235a5b;
 }
 
+
+.separator {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #6b4b7c, transparent);
+    margin: 20px 0;
 }
