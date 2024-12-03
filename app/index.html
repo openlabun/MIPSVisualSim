@@ -25,7 +25,7 @@
 
         /* Estilos adicionales para el área de arrastre de archivos */
         #dropArea {
-            border: 2px dashed #007bff;
+            border: 2px dashed #235a5b;
             padding: 20px;
             text-align: center;
         }
@@ -34,7 +34,31 @@
         .debugger-buttons button {
             margin: 5px;
         }
-   
+        /* Estilos personalizados para la sección de ingreso de instrucciones */
+        .instructions-container {
+            background-color: #f8f9fa;
+            border: 2px solid #235a5b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            height: 480px;
+        }
+
+        .instructions-container textarea {
+            border: 2px solid #235a5b;
+            background-color: #ffffff;
+            color: #235a5b;
+        }
+
+        #simulate-mips-button {
+            background-color: #235a5b;
+            border: none;
+            color: #ffffff;
+        }
+
+        #simulate-mips-button:hover {
+            background-color: #1e4f50;
+        }
     </style>
 </head>
 
@@ -59,13 +83,12 @@
 
     </div>
     
-
     <!-- Parte inferior con el contenido actual de tu proyecto -->
     <div class="container content main-content">
         <!-- Sección de la parte inferior -->
         <div class="row">
             <!-- Sección de Ingreso de Instrucciones y Arrastrar Archivo (Izquierda) -->
-            <div class="col-md-4">
+            <div class="col-md-4 instructions-container">
                 <!-- Ingreso de Instrucciones MIPS -->
                 <div class="mb-4">
                     <textarea class="form-control" id="mips-input" placeholder="Enter MIPS instructions here..." rows="10"></textarea>
