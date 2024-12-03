@@ -1,4 +1,3 @@
-// Global variables for visualization
 let datapathViz;
 let registerViz;
 let memoryViz;
@@ -79,14 +78,12 @@ img.addEventListener('mousemove', function (e) {
         text += `Jump: ${gen_zero}`;
     } else if (79 < x && x < 100 && 403 < y && y < 420) {
         text += `Jump: ${gen_not}`;
-    } else if (117 < x && x < 138 && 414< y && y < 432) {
+    } else if (117 < x && x < 138 && 414 < y && y < 432) {
         text += `Jump: ${gen_and2}`;
-    } else if (127 < x && x < 147 && 362< y && y < 380) {
+    } else if (127 < x && x < 147 && 362 < y && y < 380) {
         text += `Jump: ${gen_and1}`;
     } else if (444 < x && x < 492 && 253 < y && y < 270) {
         text += `RegWrite: ${gen_regwrite}`;
-    } else if (503 < x && x < 539 && 209< y && y < 226) {
-        text += `Data: ${gen_data}`;
     } else if (99 < x && x < 137 && 289 < y && y < 322) {
         text += `Sum2: ${gen_sum2}`;
     } else if (649 < x && x < 684 && 269 < y && y < 286) {
@@ -97,15 +94,13 @@ img.addEventListener('mousemove', function (e) {
         text += `Result: ${gen_result}`;
     } else if (847 < x && x < 882 && 316 < y && y < 333) {
         text += `Zero2: ${gen_zero2}`;
-    } else if ( 838< x && x < 896 && 358 < y && y < 375) {
+    } else if (838 < x && x < 896 && 358 < y && y < 375) {
         text += `MemWrite: ${gen_memwrite}`;
     } else if (1011 < x && x < 1068 && 368 < y && y < 385) {
         text += `MmetoReg: ${gen_memtoreg}`;
-    } else if (1078 < x && x < 1113 && 301 < y && y < 318) {
-        text += `Data2: ${gen_data2}`;
-    }  else if (352 < x && x < 420 && 272 < y && y < 340) {
+    } else if (352 < x && x < 420 && 272 < y && y < 340) {
         text += `Instruction Memory: ${gen_instMem}`;
-    }  else if (928 < x && x < 996 && 276 < y && y < 343) {
+    } else if (928 < x && x < 996 && 276 < y && y < 343) {
         text += `Instruction Memory2: ${gen_instMem2}`;
     } else if (753 < x && x < 823 && 272 < y && y < 340) {
         text += `ALU: ${gen_alu}`;
@@ -123,26 +118,21 @@ img.addEventListener('mousemove', function (e) {
 img.addEventListener('mouseleave', function () {
     textOverlay.textContent = 'Mueve el mouse sobre la imagen';
 });
-// MIPS Datapath Visualization
 class DatapathVisualizer {
     constructor(svgElement) {
         this.svg = svgElement;
         this.components = {};
         this.signals = {};
-
-        // Define component colors
         this.componentColors = {
-            MUX: '#FF9800',      // Orange for multiplexers
-            PC: '#4CAF50',       // Green for PC
-            ADDER: '#2196F3',    // Blue for adders
-            InstrMem: '#9C27B0', // Purple for instruction memory
-            Registers: '#E91E63', // Pink for registers
-            ALU: '#00BCD4',      // Cyan for ALU
-            DataMem: '#9C27B0',  // Purple for data memory
-            Constant: '#607D8B'   // Blue grey for constant
+            MUX: '#FF9800',    
+            PC: '#4CAF50',      
+            ADDER: '#2196F3',   
+            InstrMem: '#9C27B0', 
+            Registers: '#E91E63', 
+            ALU: '#00BCD4',      
+            DataMem: '#9C27B0',  
+            Constant: '#607D8B'   
         };
-
-        // Create arrowhead marker definition
         const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
         const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
         marker.setAttribute("id", "arrowhead");
@@ -159,16 +149,12 @@ class DatapathVisualizer {
         marker.appendChild(polygon);
         defs.appendChild(marker);
         this.svg.appendChild(defs);
-
-        // Initialize the datapath
         this.initializeDatapath();
     }
 
     initializeDatapath() {
-        const mainPathY = 150;  // Main horizontal path Y position
-        const spacing = 100;    // Increased spacing between components
-
-        // Create components with better spacing
+        const mainPathY = 150; 
+        const spacing = 100;    
         this.createMux("MUX1", 100, mainPathY);
         this.createComponent("PC", 220, mainPathY, 60, 40);
         this.createComponent("InstrMem", 340, mainPathY, 80, 80);
@@ -177,14 +163,9 @@ class DatapathVisualizer {
         this.createComponent("ALU", 720, mainPathY, 80, 80);
         this.createComponent("DataMem", 840, mainPathY, 80, 80);
         this.createMux("MUX3", 960, mainPathY);
-
-        // Create adders and constant with adjusted positions
-        this.createAdder("ADDER1", 220, mainPathY - 80);  // Above PC
-        this.createAdder("ADDER2", 220, mainPathY + 80);  // Below PC
+        this.createAdder("ADDER1", 220, mainPathY - 80);  
+        this.createAdder("ADDER2", 220, mainPathY + 80); 
         this.createComponent("Constant", 340, mainPathY + 80, 40, 40);
-
-        // Create signals in the correct order
-        // Main datapath
         this.createSignal("MUX1-PC", "MUX1", "PC");
         this.createSignal("PC-InstrMem", "PC", "InstrMem");
         this.createSignal("InstrMem-Registers", "InstrMem", "Registers");
@@ -192,19 +173,11 @@ class DatapathVisualizer {
         this.createSignal("MUX2-ALU", "MUX2", "ALU");
         this.createSignal("ALU-DataMem", "ALU", "DataMem");
         this.createSignal("DataMem-MUX3", "DataMem", "MUX3");
-
-        // PC to ADDER1 and ADDER2
         this.createSignal("PC-ADDER1", "PC", "ADDER1", false, true);
         this.createSignal("PC-ADDER2", "PC", "ADDER2", false, true);
-
-        // Constant to ADDER2
         this.createSignal("Constant-ADDER2", "Constant", "ADDER2");
-
-        // Feedback paths
         this.createSignal("ADDER1-MUX1", "ADDER1", "MUX1", true);
         this.createSignal("ADDER2-MUX1", "ADDER2", "MUX1", true);
-
-        // Additional control signals
         this.createSignal("InstrMem-MUX2", "InstrMem", "MUX2", false, true);
         this.createSignal("Registers-ALU", "Registers", "ALU", false, true);
         this.createSignal("ALU-MUX3", "ALU", "MUX3", false, true);
@@ -219,7 +192,7 @@ class DatapathVisualizer {
         if (name === 'ALU') return this.componentColors.ALU;
         if (name === 'DataMem') return this.componentColors.DataMem;
         if (name === 'Constant') return this.componentColors.Constant;
-        return '#2196F3'; // Default color
+        return '#2196F3'; 
     }
 
     createComponent(name, x, y, width, height) {
@@ -264,13 +237,11 @@ class DatapathVisualizer {
         const height = 60;
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
         group.setAttribute("transform", `translate(${x},${y})`);
-
-        // Create trapezoid shape for multiplexer
         const points = [
-            [-width / 2, -height / 2],  // Top left
-            [width / 2, -height / 3],   // Top right
-            [width / 2, height / 3],    // Bottom right
-            [-width / 2, height / 2]    // Bottom left
+            [-width / 2, -height / 2], 
+            [width / 2, -height / 3],   
+            [width / 2, height / 3],   
+            [-width / 2, height / 2]    
         ].map(point => point.join(',')).join(' ');
 
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
@@ -356,36 +327,26 @@ class DatapathVisualizer {
         path.setAttribute("stroke-width", "2");
         path.setAttribute("fill", "none");
         path.setAttribute("marker-end", "url(#arrowhead)");
-
-        // Calculate connection points
         let startX, startY, endX, endY;
-
-        // Output point (from)
         startX = fromComp.x + fromComp.width / 2;
         startY = fromComp.y;
 
-        // Input point (to)
         if (isSecondInput) {
-            // Connect to bottom for second input
             endX = toComp.x;
             endY = toComp.y + toComp.height / 2;
         } else {
-            // Connect to left side for first input
             endX = toComp.x - toComp.width / 2;
             endY = toComp.y;
         }
 
-        // Generate path data
         let d;
         if (isFeedback) {
-            // Feedback paths go around the top
             const midY = Math.min(fromComp.y, toComp.y) - 50;
             d = `M ${startX} ${startY} 
                  L ${startX} ${midY} 
                  L ${endX} ${midY} 
                  L ${endX} ${endY}`;
         } else if (isSecondInput) {
-            // Second inputs come from below
             const midX = (startX + endX) / 2;
             const bottomOffset = 30;
             d = `M ${startX} ${startY} 
@@ -393,7 +354,6 @@ class DatapathVisualizer {
                  L ${endX} ${endY + bottomOffset} 
                  L ${endX} ${endY}`;
         } else {
-            // Standard horizontal connection with vertical segments as needed
             const midX = (startX + endX) / 2;
             d = `M ${startX} ${startY} 
                  L ${midX} ${startY} 
@@ -402,7 +362,7 @@ class DatapathVisualizer {
         }
 
         path.setAttribute("d", d);
-        this.svg.insertBefore(path, this.svg.firstChild); // Place signals behind components
+        this.svg.insertBefore(path, this.svg.firstChild);
         this.signals[id] = path;
     }
 
@@ -434,7 +394,7 @@ class DatapathVisualizer {
     }
 }
 
-// Register and Memory Visualization
+
 class RegisterVisualizer {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
@@ -446,10 +406,7 @@ class RegisterVisualizer {
     }
 
     initializeRegisters() {
-        // Clear existing content
         this.container.innerHTML = '';
-
-        // Create register elements
         Object.keys(registers).forEach(reg => {
             const regItem = document.createElement('div');
             regItem.className = 'register-item';
@@ -473,7 +430,6 @@ class RegisterVisualizer {
         Object.entries(registers).forEach(([reg, value]) => {
             const element = document.getElementById(`reg-${reg}`);
             if (element) {
-                // Format value as 8-digit hexadecimal
                 const hexValue = (value >>> 0).toString(16).padStart(8, '0');
                 element.textContent = `0x${hexValue}`;
             }
@@ -554,12 +510,9 @@ class MemoryVisualizer {
     }
 }
 
-// Instruction translation functions
-function translateInstructionToMIPS(hexInstruction) {
-    // Convert hex string to binary
-    const binary = parseInt(hexInstruction, 16).toString(2).padStart(32, '0');
 
-    // Parse opcode (first 6 bits)
+function translateInstructionToMIPS(hexInstruction) {
+    const binary = parseInt(hexInstruction, 16).toString(2).padStart(32, '0');
     const opcode = parseInt(binary.slice(0, 6), 2);
 
     const registerNames = [
@@ -569,7 +522,6 @@ function translateInstructionToMIPS(hexInstruction) {
         't8', 't9', 'k0', 'k1', 'gp', 'sp', 'fp', 'ra'
     ];
 
-    // R-type instruction
     if (opcode === 0) {
         const rs = parseInt(binary.slice(6, 11), 2);
         const rt = parseInt(binary.slice(11, 16), 2);
@@ -586,7 +538,6 @@ function translateInstructionToMIPS(hexInstruction) {
         }
     }
 
-    // I-type instruction
     const rs = parseInt(binary.slice(6, 11), 2);
     const rt = parseInt(binary.slice(11, 16), 2);
     const immediate = parseInt(binary.slice(16), 2);
@@ -609,16 +560,11 @@ function translateInstructionToMIPS(hexInstruction) {
     }
 }
 
-// Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM loaded, initializing simulator...');
-
-    // Initialize visualizers
     datapathViz = new DatapathVisualizer(document.getElementById('datapath-container'));
     registerViz = new RegisterVisualizer('register-container');
     memoryViz = new MemoryVisualizer('memory-container');
-
-    // Get UI elements
     const elements = {
         mipsInput: document.getElementById('mips-input'),
         runButton: document.getElementById('simulate-mips-button'),
@@ -636,7 +582,6 @@ document.addEventListener('DOMContentLoaded', function () {
         processFileButton: !!elements.processFileButton
     });
 
-    // Add input event listener to update instructions when text changes
     if (elements.mipsInput) {
         elements.mipsInput.addEventListener('input', function () {
             instructions = this.value.trim().split('\n').filter(line => line.length > 0);
@@ -644,8 +589,6 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Instructions updated:', instructions);
         });
     }
-
-    // Add button event listeners
     if (elements.runButton) {
         elements.runButton.onclick = function () {
             console.log('Run button clicked');
@@ -675,8 +618,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         elements.fileInput.onchange = handleFileSelect;
     }
-
-    // File drag and drop handlers
     if (elements.dropArea) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             elements.dropArea.addEventListener(eventName, preventDefaults);
@@ -687,8 +628,6 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.dropArea.ondragleave = unhighlight;
         elements.dropArea.ondrop = handleDrop;
     }
-
-    // Initial reset
     resetSimulation();
 });
 
@@ -704,17 +643,12 @@ document.addEventListener('DOMContentLoaded', () => {
 function runSimulation() {
 
     console.log('Running simulation...');
-    // Reset state before running
     resetSimulation();
-
-    // Get instructions if not already loaded
     const mipsInput = document.getElementById('mips-input');
     if (mipsInput && instructions.length === 0) {
         instructions = mipsInput.value.trim().split('\n').filter(line => line.length > 0);
         console.log('Loaded instructions:', instructions);
     }
-
-    // Execute all instructions
     while (currentInstructionIndex < instructions.length) {
         stepSimulation();
     }
@@ -732,24 +666,15 @@ function stepSimulation() {
 
     const instruction = instructions[currentInstructionIndex];
     console.log('Executing instruction:', instruction);
-
-    // Update execution status
     const currentInstructionElement = document.getElementById('current-instruction');
     if (currentInstructionElement) {
         currentInstructionElement.textContent = instruction;
     }
 
-    // Highlight datapath components based on instruction type
     highlightDatapath(instruction);
-
-    // Execute instruction
     executeInstruction(instruction);
-
-    // Update visualizations
     if (registerViz) registerViz.update(registers);
     if (memoryViz) memoryViz.update(memory);
-
-    // Update program counter display
     const pcValueElement = document.getElementById('pc-value');
     if (pcValueElement) {
         pcValueElement.textContent = `0x${(currentInstructionIndex * 4).toString(16).padStart(8, '0')}`;
@@ -760,30 +685,41 @@ function stepSimulation() {
 }
 
 function resetSimulation() {
-    let PC = 0;
-    let sum1 = 0;
-    let gen_rs = 0
-    let gen_rt = 0
-    let gen_rd = 0
-    let gen_regdst = 0
-    let gen_offset = 0
-    let gen_jumpad = 0
+    PC = 0;
+    sum1 = 0;
+    gen_rs = 0
+    gen_rt = 0
+    gen_rd = 0
+    gen_regdst = 0
+    gen_offset = 0
+    gen_jumpad = 0
+    gen_instMem = 0
+    gen_instMem2 = 0
+    gen_runit = 0
+    gen_alu = 0
+    gen_aluop = 0
+    gen_alusrc = 0
+    gen_beq = 0
+    gen_zero = 0
+    gen_bne = 0
+    gen_not = 0
+    gen_and2 = 0
+    gen_and1 = 0
+    gen_regwrite = 0
+    gen_data = 0
+    gen_sum2 = 0
+    gen_ra = 0
+    gen_rb = 0
     console.log('Resetting simulation...');
     currentInstructionIndex = 0;
-
-    // Reset registers
     Object.keys(registers).forEach(key => {
         registers[key] = 0;
     });
 
-    // Reset memory
     memory = {};
 
-    // Update visualizations
     if (registerViz) registerViz.update(registers);
     if (memoryViz) memoryViz.update(memory);
-
-    // Reset status displays
     const elements = {
         currentInstruction: document.getElementById('current-instruction'),
         pcValue: document.getElementById('pc-value'),
@@ -794,8 +730,6 @@ function resetSimulation() {
     if (elements.currentInstruction) elements.currentInstruction.textContent = '-';
     if (elements.pcValue) elements.pcValue.textContent = '0x00000000';
     if (elements.aluResult) elements.aluResult.textContent = '-';
-
-    // Update instructions from input if it exists
     if (elements.mipsInput) {
         instructions = elements.mipsInput.value.trim().split('\n').filter(line => line.length > 0);
     }
@@ -822,7 +756,7 @@ function executeInstruction(instruction) {
                 gen_jumpad = lastValue
                 gen_aluop = 0
                 gen_alusrc = 0
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
                 currentInstructionIndex = lastValue - 1;
                 gen_instMem2 = instruction
@@ -837,9 +771,9 @@ function executeInstruction(instruction) {
                 gen_imm = immValue
                 gen_aluop = 1
                 gen_alusrc = 0
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
-                gen_runit = registers[rs] 
+                gen_runit = registers[rs]
                 gen_alu = registers[rs] - registers[rt]
                 gen_instMem2 = instruction
                 if (gen_alu === 0) {
@@ -856,7 +790,7 @@ function executeInstruction(instruction) {
                 gen_imm = immValue
                 gen_aluop = 1
                 gen_alusrc = 0
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
                 gen_instMem2 = instruction
                 if (registers[rs] != registers[rt]) {
@@ -877,7 +811,7 @@ function executeInstruction(instruction) {
                 gen_runit = registers[rs]
                 gen_alu = registers[rs] + registers[rt];
                 registers[rd] = gen_alu
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
                 gen_instMem2 = instruction
                 const result = registers[rd];
@@ -897,7 +831,7 @@ function executeInstruction(instruction) {
                 gen_aluop = 0
                 gen_alusrc = 1
                 registers[rt] = registers[rs] + immValue;
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
                 gen_instMem2 = instruction
                 const result = registers[rt];
@@ -919,7 +853,7 @@ function executeInstruction(instruction) {
                 gen_runit = registers[rs]
                 registers[rd] = gen_alu
                 const result = registers[rd];
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
                 gen_instMem2 = instruction
                 console.log(`Sub result: ${registers[rs]} - ${registers[rt]} = ${result}`);
@@ -938,7 +872,7 @@ function executeInstruction(instruction) {
                 gen_aluop = 0
                 gen_alusrc = 1
                 gen_runit = registers[rs]
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
                 gen_alu = registers[rs] + parseInt(offset);
                 registers[rt] = memory[gen_alu] || 0;
@@ -958,7 +892,7 @@ function executeInstruction(instruction) {
                 gen_offset = offset
                 gen_aluop = 0
                 gen_alusrc = 1
-                gen_ra = registers[rs]  
+                gen_ra = registers[rs]
                 gen_rb = registers[rt]
                 gen_runit = registers[rt]
                 gen_alu = registers[rs] + parseInt(offset)
@@ -981,12 +915,9 @@ function executeInstruction(instruction) {
 
 function highlightDatapath(instruction) {
     const op = instruction.split(' ')[0];
-
-    // Reset previous highlights
     datapathViz.highlightComponent('PC');
     datapathViz.highlightSignal('PC-MUX1');
 
-    // Highlight components based on instruction type
     if (['lw', 'sw'].includes(op)) {
         datapathViz.highlightComponent('DataMem');
         datapathViz.highlightSignal('ALU-DataMem');
@@ -996,19 +927,14 @@ function highlightDatapath(instruction) {
         datapathViz.highlightSignal('Registers-ALU');
     }
 
-    // Always highlight registers for any instruction
     datapathViz.highlightComponent('Registers');
 }
 
 function updateExecutionStatus() {
     const progress = `${currentInstructionIndex}/${instructions.length}`;
     const status = currentInstructionIndex >= instructions.length ? 'Complete' : 'Running';
-
-    // Update UI elements to show progress
     const runButton = document.getElementById('simulate-mips-button');
     const stepButton = document.getElementById('step-button');
-
-    // Only disable buttons if there are no instructions
     if (runButton) runButton.disabled = instructions.length === 0;
     if (stepButton) stepButton.disabled = instructions.length === 0;
 }
@@ -1052,19 +978,11 @@ function handleFiles(files) {
             alert('Invalid file format. Expected at least two lines.');
             return;
         }
-
-        // Process the second line containing instructions
         const hexInstructions = lines[1].trim().split(/\s+/);
         instructions = hexInstructions.map(hex => translateInstructionToMIPS(hex.trim()));
-
-        // Update the MIPS input area
         const mipsInput = document.getElementById('mips-input');
         if (mipsInput) mipsInput.value = instructions.join('\n');
-
-        // Reset simulation state
         resetSimulation();
-
-        // Update UI
         updateExecutionStatus();
     };
     reader.readAsText(files[0]);
