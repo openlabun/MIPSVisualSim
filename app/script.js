@@ -625,7 +625,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else if (id === 'PC') {
                             showPopup(event, popupTexts[index], 'PC');
                         } else if (id === 'DataMem') {
-                            showPopup(event, popupTexts[index], 'DataMem');
+                            console.log("Estado actual de la memoria de datos:", memory);
+    // Formato especial para la memoria de datos
+                            const memoryText = Object.keys(memory).map(address => 
+                                `Dirección 0x${parseInt(address).toString(16).padStart(2, '0')}: Valor 0x${memory[address].toString(16).padStart(8, '0')}`
+                            ).join('\n');
+    showPopup(event, memoryText, "DataMem");
                         } else if (id === 'Alu') {
                             showPopup(event, popupTexts[index], 'Alu');
                         } else if (id === 'InsMem') {
@@ -1022,9 +1027,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             'DataMem': {
                 minWidth: '350px',
-                maxWidth: '500px',
-                minHeight: '300px',
-                maxHeight: '500px',
+                minHeight: '600px',
                 padding: '15px',
                 fontSize: '14px',
                 backgroundColor: '#f1f3f5'
