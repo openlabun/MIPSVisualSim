@@ -27,7 +27,6 @@ function translateInstructionToHex(instruction) {
     if (!opcode) return "Unknown Instruction";
 
     let binaryInstruction = opcode;
-    console.log(parts[0]);
     if (["add", "sub", "slt", "and", "or"].includes(parts[0])) {
         // R-type instruction
         const rd = regMap[parts[1]];
@@ -38,57 +37,48 @@ function translateInstructionToHex(instruction) {
     } else if (["lw", "sw"].includes(parts[0])) {
         // I-type instruction
         const rt = regMap[parts[1]];
-        const rs = regMap[parts[2].split(',')[0]];
-        const immediate = parseInt(parts[2].split(',')[1]);
-        if (!rt || !rs || isNaN(immediate)) return "Invalid Syntax";
-        binaryInstruction += rs + rt + (immediate >>> 0).toString(2).padStart(16, '0');
+        const [offset, base] = parts[2].match(/(-?\d+)\((\w+)\)/).slice(1); // Parse offset(base)
+        const rs = regMap[base];
+        if (!rt || !rs || isNaN(offset)) return "Invalid Syntax";
+        const immediate = (parseInt(offset) & 0xFFFF).toString(2).padStart(16, '0');
+        binaryInstruction += rs + rt + immediate;
     } else if (["addi"].includes(parts[0])) {
         // I-type instruction
         const rt = regMap[parts[1]];
         const rs = regMap[parts[2]];
-        const immediate = parseInt(parts[3]);
+        const immediate = (parseInt(parts[3]) & 0xFFFF).toString(2).padStart(16, '0');
         if (!rt || !rs || isNaN(immediate)) return "Invalid Syntax";
-        binaryInstruction += rs + rt + (immediate >>> 0).toString(2).padStart(16, '0');
+        binaryInstruction += rs + rt + immediate;
     } else if (["beq", "bne"].includes(parts[0])) {
         // I-type instruction
         const rs = regMap[parts[1]];
         const rt = regMap[parts[2]];
-        const label = parts[3];
-        if (!rs || !rt) return "Invalid Registers";
-        // For simplicity, assuming label is an immediate value (offset)
-        const offset = parseInt(label);
-        if (isNaN(offset)) return "Invalid Syntax";
-        binaryInstruction += rs + rt + (offset >>> 0).toString(2).padStart(16, '0');
+        const offset = (parseInt(parts[3]) & 0xFFFF).toString(2).padStart(16, '0');
+        if (!rs || !rt || isNaN(offset)) return "Invalid Syntax";
+        binaryInstruction += rs + rt + offset;
     } else if (["j"].includes(parts[0])) {
         // J-type instruction
-        const address = parseInt(parts[1]);
+        const address = (parseInt(parts[1]) & 0x3FFFFFF).toString(2).padStart(26, '0');
         if (isNaN(address)) return "Invalid Syntax";
-        binaryInstruction += (address >>> 0).toString(2).padStart(26, '0');
+        binaryInstruction += address;
     } else {
         return "Unsupported Instruction";
     }
 
     // Convert binary instruction to hexadecimal
-    const hexInstruction = parseInt(binaryInstruction, 2).toString(16).toUpperCase().padStart(8, '0');
-    //return "0x" + hexInstruction;
-    return hexInstruction;
+    return parseInt(binaryInstruction, 2).toString(16).toUpperCase().padStart(8, '0');
 }
 
 function translateInstructionToMIPS(hexInstruction) {
-    console.log("hexInstruction", hexInstruction);
     const opcodeMap = {
-        "000000": "add", "000000": "sub", "000000": "slt", "000000": "and", "000000": "or",
+        "000000": "R-type",
         "001000": "addi", "100011": "lw", "101011": "sw",
         "000100": "beq", "000101": "bne",
         "000010": "j"
     };
 
     const funcMap = {
-        "100000": "add",
-        "100010": "sub",
-        "101010": "slt",
-        "100100": "and",
-        "100101": "or",
+        "100000": "add", "100010": "sub", "101010": "slt", "100100": "and", "100101": "or",
     };
 
     const regMap = {
@@ -101,110 +91,54 @@ function translateInstructionToMIPS(hexInstruction) {
         "11000": "t8", "11001": "t9", "11010": "k0", "11011": "k1",
         "11100": "gp", "11101": "sp", "11110": "fp", "11111": "ra"
     };
-    const binaryInstruction = hexToBinary(hexInstruction);
+
+    const binaryInstruction = parseInt(hexInstruction, 16).toString(2).padStart(32, '0');
     const opcode = binaryInstruction.slice(0, 6);
-    console.log(opcode);
-    const opcodeMIPS = opcodeMap[opcode];
-    if (!opcodeMIPS) return "Unknown Instruction, opcode null";
+    const operation = opcodeMap[opcode];
 
-    let mipsInstruction = opcodeMIPS + " ";
-
-    if (["add", "sub", "slt", "and", "or"].includes(opcodeMIPS)) {
-        // R-type instruction
-        const func = binaryInstruction.slice(26, 32);;
-        console.log("Instruction func ", func);
-        const funcMIPS = funcMap[func];
-        console.log("Instruction ", funcMIPS);
-        if (!funcMIPS) return "Unknown Instruction (function)";
-        mipsInstruction = funcMIPS + " ";
-        const rs = regMap[binaryInstruction.slice(6, 11)];
-        const rt = regMap[binaryInstruction.slice(11, 16)];
-        const rd = regMap[binaryInstruction.slice(16, 21)];
-        if (!rs || !rt || !rd) return "Invalid Registers";
-        mipsInstruction += rd + " " + rs + " " + rt;
-    } else if (["lw", "sw"].includes(opcodeMIPS)) {
-        // I-type instruction
-        const rt = regMap[binaryInstruction.slice(6, 11)];
-        const rs = regMap[binaryInstruction.slice(11, 16)];
-        const offset = binaryInstruction.slice(16, 32);
-        console.log('lw, sw offset ', binaryToHex(offset));
-        if (!rt || !rs || isNaN(offset)) return "Invalid Syntax";
-        mipsInstruction += rs + " " + rt + " " + binaryToHex(offset);
-    } else if (["addi"].includes(opcodeMIPS)) {
-        // I-type instruction
-        console.log("I-type instruction, addi");
-        const rt = regMap[binaryInstruction.slice(6, 11)];
-        const rs = regMap[binaryInstruction.slice(11, 16)];
-        // const immediate = parseInt(binaryInstruction.slice(16, 32), 16);
-        console.log('immediate ', binaryInstruction.slice(16, 32));
-        console.log('immediate formated ', binaryToHex(binaryInstruction.slice(16, 32)));
-        const immediate = binaryToHex(binaryInstruction.slice(16, 32));
-        if (!rt || !rs || !immediate) return "Invalid Syntax";
-        mipsInstruction += rs + " " + rt + " " + immediate;
-    } else if (["beq", "bne"].includes(opcodeMIPS)) {
-        // I-type instruction
-        const rs = regMap[binaryInstruction.slice(6, 11)];
-        const rt = regMap[binaryInstruction.slice(11, 16)];
-        const offset = parseInt(binaryInstruction.slice(16, 32), 16);
-        if (!rs || !rt || isNaN(offset)) return "Invalid Syntax";
-        // For simplicity, assuming label is an immediate value (offset)
-        mipsInstruction += rs + " " + rt + " " + offset;
-    } else if (["j"].includes(opcodeMIPS)) {
-        // J-type instruction
-        const address = binaryToHex(binaryInstruction.slice(6, 32));
-        if (isNaN(address)) return "Invalid Syntax";
-        mipsInstruction += address;
+    if (operation === "R-type") {
+        const rs = binaryInstruction.slice(6, 11);
+        const rt = binaryInstruction.slice(11, 16);
+        const rd = binaryInstruction.slice(16, 21);
+        const func = binaryInstruction.slice(26, 32);
+        return `${funcMap[func]} ${regMap[rd]} ${regMap[rs]} ${regMap[rt]}`;
+    } else if (["addi", "lw", "sw", "beq", "bne"].includes(operation)) {
+        const rs = binaryInstruction.slice(6, 11);
+        const rt = binaryInstruction.slice(11, 16);
+        const immediate = parseInt(binaryInstruction.slice(16, 32), 2);
+        return `${operation} ${regMap[rt]} ${regMap[rs]} ${immediate}`;
+    } else if (operation === "j") {
+        const address = parseInt(binaryInstruction.slice(6, 32), 2);
+        return `${operation} ${address}`;
     } else {
-        return "Unsupported Instruction opcode", opcodeMIPS;
+        return "Unknown Instruction";
     }
-
-    return mipsInstruction;
 }
 
-
-// UTILITY FUNCTIONS
-
 function binaryToHex(binaryString) {
-    // Pad the binary string with leading zeros to ensure it's a multiple of 4
     while (binaryString.length % 4 !== 0) {
         binaryString = '0' + binaryString;
     }
-
-    // Initialize an empty string to store the hexadecimal representation
-    let hexString = '';
-
-    // Convert each group of 4 bits to its hexadecimal equivalent
-    for (let i = 0; i < binaryString.length; i += 4) {
-        const binaryChunk = binaryString.substr(i, 4); // Get a chunk of 4 bits
-        const hexDigit = parseInt(binaryChunk, 2).toString(16); // Convert the chunk to hexadecimal
-        hexString += hexDigit; // Append the hexadecimal digit to the result
-    }
-
-    // Return the hexadecimal representation
-    return "0x" + hexString.toUpperCase(); // Convert to uppercase for consistency
+    return parseInt(binaryString, 2).toString(16).toUpperCase().padStart(8, '0');
 }
 
 function hexToBinary(hex) {
     let binary = '';
     for (let i = 0; i < hex.length; i++) {
-        let bin = parseInt(hex[i], 16).toString(2);
-        binary += bin.padStart(4, '0');
+        binary += parseInt(hex[i], 16).toString(2).padStart(4, '0');
     }
     return binary;
 }
 
-
-
-function sum(a, b) {
-    return a + b;
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports = {
+        translateInstructionToMIPS,
+        translateInstructionToHex
+    };
 }
 
 
-
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize tables when the page loads
-    initializeTables();
-
     const mipsInput = document.getElementById('mips-input');
     const hexInput = document.getElementById('hex-input');
     const simulateMipsButton = document.getElementById('simulate-mips-button');
@@ -213,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     simulateMipsButton.addEventListener('click', simulateMIPS);
+
 
     // Get references to the drop area and the file input
     const dropArea = document.getElementById('dropArea');
@@ -266,6 +201,8 @@ document.addEventListener('DOMContentLoaded', function () {
         processFiles(files);
     }
 
+
+
     // Optional: You can add hover effect to the drop area
     dropArea.addEventListener('mouseenter', () => {
         dropArea.style.backgroundColor = '#f0f0f0';
@@ -308,6 +245,8 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.readAsText(files[0]);
     }
 
+
+
     function saveHexToFile() {
         // Get the value of the inputHex textarea
         const hexInstructions = hexInput.value.trim();
@@ -333,6 +272,8 @@ document.addEventListener('DOMContentLoaded', function () {
         anchor.href = window.URL.createObjectURL(blob);
         anchor.click();
     }
+
+
 
     function translateHextoMIPS() {
         const instructions = hexInput.value.trim().split('\n');
@@ -374,87 +315,44 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function initializeTables() {
-        initializeRAMTable();
-        initializeRegisterTable();
-    }
 
-    function initializeRAMTable() {
-        const ramTableBody = document.querySelector('#ramTable tbody');
-        ramTableBody.innerHTML = '';
-        
-        // Generate RAM table rows (16 rows from 0x00 to 0x0F)
-        for (let i = 0; i < 16; i++) {
-            const row = document.createElement('tr');
-            const addressCell = document.createElement('td');
-            const valueCell = document.createElement('td');
-            
-            addressCell.textContent = `0x${i.toString(16).padStart(2, '0').toUpperCase()}`;
-            valueCell.textContent = '0x00';
-            
-            row.appendChild(addressCell);
-            row.appendChild(valueCell);
-            ramTableBody.appendChild(row);
-        }
-    }
 
-    function initializeRegisterTable() {
-        const registerTableBody = document.querySelector('#registerTable tbody');
-        registerTableBody.innerHTML = '';
-        
-        // Define register names
-        const registers = [
-            'zero', 'at', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3',
-            't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7',
-            's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7',
-            't8', 't9', 'k0', 'k1', 'gp', 'sp', 'fp', 'ra'
-        ];
-        
-        // Generate register table rows
-        registers.forEach(reg => {
-            const row = document.createElement('tr');
-            const nameCell = document.createElement('td');
-            const valueCell = document.createElement('td');
-            
-            nameCell.textContent = reg;
-            valueCell.textContent = '0x00';
-            
-            row.appendChild(nameCell);
-            row.appendChild(valueCell);
-            registerTableBody.appendChild(row);
+
+    function translateMIPStoHex() {
+        const instructions = mipsInput.value.trim().split('\n');
+
+        // Translate each MIPS instruction to hexadecimal
+        const translatedInstructions = instructions.map(instruction => {
+            return translateInstructionToHex(instruction.trim());
         });
+
+        // Join the translated instructions with a newline character
+        const formattedInstructions = translatedInstructions.join('\n');
+
+        // Set the value of the inputHex textarea to the formatted instructions
+        hexInput.value = formattedInstructions;
     }
+
+
+
+    // Initialize registers and memory
+    let registers = {
+        zero: 0, at: 0, v0: 0, v1: 0,
+        a0: 0, a1: 0, a2: 0, a3: 0,
+        t0: 0, t1: 0, t2: 0, t3: 0,
+        t4: 0, t5: 0, t6: 0, t7: 0,
+        s0: 0, s1: 0, s2: 0, s3: 0,
+        s4: 0, s5: 0, s6: 0, s7: 0,
+        t8: 0, t9: 0, k0: 0, k1: 0,
+        gp: 0, sp: 0, fp: 0, ra: 0
+    };
+    let memory = Array.from({ length: 32 }).reduce((acc, curr, i) => ({ ...acc, [i]: 0 }), {});
+
+    // SIMULATION FUNCTIONS
 
     function simulateMIPS() {
-        console.log('Activando PC block'); // Para debug
-        activateBlock('pc-block');
-        
-        // Después de un pequeño delay, activamos Instruction Memory
-        setTimeout(() => {
-            console.log('Activando Instruction Memory block');
-            activateBlock('inst-mem-block');
-        }, 500);
-
-        // Después activamos Register File
-        setTimeout(() => {
-            console.log('Activando Register File block');
-            activateBlock('registers-block');
-        }, 1000);
-
-        // Después activamos ALU
-        setTimeout(() => {
-            console.log('Activando ALU block');
-            activateBlock('alu-block');
-        }, 1500);
-
-        // Finalmente activamos Data Memory
-        setTimeout(() => {
-            console.log('Activando Data Memory block');
-            activateBlock('data-mem-block');
-        }, 2000);
-
-        // Scroll to the datapath section
-        document.getElementById('datapath-section').scrollIntoView({ behavior: 'smooth' });
+        // Scroll to the simulation tables
+        simulationTables.scrollIntoView({ behavior: 'smooth' });
 
         // Get the value of the inputHex textarea and split it into instructions
         const hexInstructions = mipsInput.value.trim().split('\n');
@@ -462,81 +360,136 @@ document.addEventListener('DOMContentLoaded', function () {
         // Initialize registers and memory
         resetMIPS();
 
-        // Iterate over each hexadecimal instruction
-        hexInstructions.forEach(instruction => {
-            executeMIPSInstruction(instruction, registers, memory);
-        });
+     // Iterate over each hexadecimal instruction
+     const allInstructions=[];
+     hexInstructions.forEach(instruction => {
+         allInstructions.push(instruction);
+     });
 
-        // Display the final values of registers and memory
-        console.log('Final Registers:', registers);
-        console.log('Final Memory:', memory);
+     let PC=0;
+     while(PC<allInstructions.length){
+         PC=executeMIPSInstruction(allInstructions[PC], registers, memory,PC);
+         if(PC==-1){
+             break;
+         }
+     }
 
-        // Update tables
-        updateTables(registers, memory);
-    }
+     /*hexInstructions.forEach(instruction => {
+         executeMIPSInstruction(instruction, registers, memory);
+     });*/
 
-    function executeMIPSInstruction(instruction, registers, memory) {
-        // Split MIPS instruction into operation and operands
-        const [op, ...operands] = instruction.split(' ');
-        // Implement execution logic for each MIPS operation
-        switch (op) {
-            case 'add': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] + registers[rt];
-                break;
-            }
-            case 'sub': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] - registers[rt];
-                break;
-            }
-            case 'slt': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] < registers[rt] ? 1 : 0;
-                break;
-            }
-            case 'and': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] & registers[rt];
-                break;
-            }
-            case 'or': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] | registers[rt];
-                break;
-            }
-            case 'addi': {
-                const [rd, rs, immediate] = operands;
-                registers[rd] = registers[rs] + parseInt(immediate);
-                break;
-            }
-            case 'lw': {
-                const [rt, rs, offset] = operands;
-                const address = registers[rs] + parseInt(offset);
-                //console.log('lw address:', address);
-                //console.log('lw memory value:', memory[address]);
-                if (memory.hasOwnProperty(address)) {
-                    registers[rt] = memory[address];
-                } else {
-                    console.error('Memory address not found:', address);
-                }
-                break;
-            }
-            case 'sw': {
-                const [rt, rs, offset] = operands;
-                const address = registers[rs] + parseInt(offset);
-                //console.log('sw rt:', rt, 'rs', rs, 'offset', offset, 'address', address,'getting', registers[rt] );
-                memory[address] = registers[rt];
-                break;
-            }
-            // Add cases for other MIPS operations
-            default: {
-                console.error('Unsupported operation:', op);
-                break;
-            }
-        }
-    }
+     // Display the final values of registers and memory
+     console.log('Final Registers:', registers);
+     console.log('Final Memory:', memory);
 
+     // Update tables
+     updateTables(registers, memory);
+ }
+
+ function executeMIPSInstruction(instruction, registers, memory, PC) {
+     //Simular recorrido
+     console.log('current instruction: ', instruction);
+     //const ID = descomponerMIPS(instruction);
+     //console.log('Resultado ID:');
+     //console.log(ID.resultado);
+     //console.log('Resultado UC:');
+     //console.log(ID.UC.control);
+     //console.log('Resultado ALUC: ');
+     //console.log(ID.UC.ALUC.aluOperation);
+     //console.log('Resultado ALU: ');
+     //console.log(ID.UC.ALUC.Alu.resultado)
+     //console.log('Resultado ALU Zero: ');
+     //console.log(ID.UC.ALUC.Alu.ZERO);
+
+
+
+
+     // Split MIPS instruction into operation and operands
+     const [op, ...operands] = instruction.split(' ');
+     // Implement execution logic for each MIPS operation
+     switch (op) {
+         //FUNCIONA
+         case 'add':
+         case 'addu': {
+             const [rd, rs, rt] = operands;
+             registers[rd] = registers[rs] + registers[rt];
+             PC++;
+             break;
+         }
+         //FUNCIONA
+         case 'sub': 
+         case 'subu':{
+             const [rd, rs, rt] = operands;
+             registers[rd] = registers[rs] - registers[rt];
+             PC++;
+
+             break;
+         }
+         //FUNCIONA
+         case 'slt': {
+             const [rd, rs, rt] = operands;
+             registers[rd] = registers[rs] < registers[rt] ? 1 : 0;
+             PC++;
+
+             break;
+         }
+         //FUNCIONA
+         case 'and': {
+             const [rd, rs, rt] = operands;
+             registers[rd] = registers[rs] & registers[rt];
+             PC++;
+
+             break;
+         }
+         //FUNCIONA
+         case 'andi':
+         case 'ori':{
+             const [rd, rs, immediate] = operands;
+             if(op=='andi'){
+                 registers[rd] = registers[rs] & parseInt(immediate);
+             }else{
+                 registers[rd] = registers[rs] | parseInt(immediate);
+             }
+             PC++;
+
+             break;
+         }
+         //FUNCIONA
+         case 'or': {
+             const [rd, rs, rt] = operands;
+             registers[rd] = registers[rs] | registers[rt];
+             PC++;
+
+             break;
+         }
+         //FUNCIONA
+         case 'addi': 
+         case 'addiu':{
+             const [rd, rs, immediate] = operands;
+             registers[rd] = registers[rs] + parseInt(immediate);
+             PC++;
+             break;
+         }
+         //FUNCIONA
+         case 'lw': {
+             const [rt, des] = operands;
+             const  rs=(des.split('(')[1].split(')')[0]);
+             const offset=(des.split('(')[0]);
+             const address = registers[rs] + parseInt(offset);
+             //console.log('lw address:', address);
+             //console.log('lw memory value:', memory[address]);
+             if (memory.hasOwnProperty(address)) {
+                 registers[rt] = memory[address];
+             } else {
+                 console.error('Memory address not found:', address);
+             }
+             PC++;
+
+             break;
+         }
+    
+
+            
     // SETUP THE DEBUGGER
     const debugPlayButton = document.getElementById('dg-run-button');
     const debugStepButton = document.getElementById('dg-step-in-button');
@@ -557,6 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
     updateDebuggerInfo();
 
     function stepMIPS() {
+
 
         // Get the value of the inputHex textarea and split it into instructions
         const hexInstructions = mipsInput.value.trim().split('\n');
@@ -647,147 +601,6 @@ document.addEventListener('DOMContentLoaded', function () {
         debuggerInfo[1].textContent = `Current instruction: ${mipsInput.value.trim().split('\n')[PC] ?? null}`;
         debuggerInfo[2].textContent = `Previous instruction: ${mipsInput.value.trim().split('\n')[PC - 1] ?? null}`;
     }
-
-    // Función para activar los bloques del datapath
-    function activateDatapathBlock(blockId) {
-        // Primero, limpiamos todos los bloques activos
-        document.querySelectorAll('.datapath-block').forEach(block => {
-            block.classList.remove('active');
-        });
-        
-        // Activamos el bloque específico
-        const block = document.getElementById(blockId);
-        if (block) {
-            block.classList.add('active');
-        }
-    }
-
-    // Función para simular la ejecución de una instrucción
-    function simulateInstruction(instruction) {
-        // Resetear todos los bloques
-        document.querySelectorAll('.datapath-block').forEach(block => {
-            block.classList.remove('active');
-        });
-
-        const inst = instruction.toLowerCase();
-        console.log('Simulando instrucción:', inst);
-
-        // Secuencia base (PC e Instruction Memory son comunes para todas las instrucciones)
-        activateBlock('pc-block');
-        
-        setTimeout(() => {
-            activateBlock('inst-mem-block');
-        }, 500);
-
-        // Instrucciones tipo-R (add, sub, and, or, slt)
-        if (inst.startsWith('add ') || inst.startsWith('sub ') || 
-            inst.startsWith('and ') || inst.startsWith('or ') || 
-            inst.startsWith('slt ')) {
-            console.log('Detectada instrucción tipo-R');
-            // Lee dos registros fuente
-            setTimeout(() => {
-                activateBlock('registers-block');
-            }, 1000);
-
-            // Operación en ALU
-            setTimeout(() => {
-                activateBlock('alu-block');
-            }, 1500);
-
-            // Escribe resultado en registro destino
-            setTimeout(() => {
-                activateBlock('registers-block');
-            }, 2000);
-        }
-        
-        // Instrucciones tipo-I (addi, andi, ori, slti)
-        else if (inst.startsWith('addi ') || inst.startsWith('andi ') || 
-                 inst.startsWith('ori ') || inst.startsWith('slti ')) {
-            console.log('Detectada instrucción tipo-I');
-            // Lee un registro fuente
-            setTimeout(() => {
-                activateBlock('registers-block');
-            }, 1000);
-
-            // Operación en ALU con inmediato
-            setTimeout(() => {
-                activateBlock('alu-block');
-            }, 1500);
-
-            // Escribe resultado en registro destino
-            setTimeout(() => {
-                activateBlock('registers-block');
-            }, 2000);
-        }
-
-        // Instrucciones de memoria (lw, sw)
-        else if (inst.startsWith('lw ') || inst.startsWith('sw ')) {
-            console.log('Detectada instrucción de memoria');
-            // Lee registro base
-            setTimeout(() => {
-                activateBlock('registers-block');
-            }, 1000);
-
-            // Calcula dirección en ALU
-            setTimeout(() => {
-                activateBlock('alu-block');
-            }, 1500);
-
-            // Accede a memoria
-            setTimeout(() => {
-                activateBlock('data-mem-block');
-            }, 2000);
-
-            // Para lw, escribe en registro
-            if (inst.startsWith('lw ')) {
-                setTimeout(() => {
-                    activateBlock('registers-block');
-                }, 2500);
-            }
-        }
-
-        // Instrucciones de salto (beq, bne)
-        else if (inst.startsWith('beq ') || inst.startsWith('bne ')) {
-            console.log('Detectada instrucción de salto');
-            // Lee dos registros para comparar
-            setTimeout(() => {
-                activateBlock('registers-block');
-            }, 1000);
-
-            // Compara en ALU
-            setTimeout(() => {
-                activateBlock('alu-block');
-            }, 1500);
-
-            // El PC se actualiza si la condición es verdadera
-            setTimeout(() => {
-                activateBlock('pc-block');
-            }, 2000);
-        }
-    }
-
-    function simulateMIPS() {
-        // Get the value of the mipsInput textarea
-        const instructions = mipsInput.value.trim().split('\n');
-        
-        // Simulate the first instruction
-        if (instructions.length > 0) {
-            simulateInstruction(instructions[0]);
-        }
-
-        // Scroll to the datapath section
-        document.getElementById('datapath-section').scrollIntoView({ behavior: 'smooth' });
-
-        // Resto del código existente...
-    }
-
-    // Modificar la función existente que maneja las instrucciones
-    function handleInstruction(instruction) {
-        // Tu código existente aquí
-        
-        // Añadir la simulación
-        simulateInstruction(instruction);
-    }
 });
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
@@ -796,83 +609,4 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         translateInstructionToMIPS,
         translateInstructionToHex
     };
-}
-
-let lastActiveBlock = null;
-
-function activateBlock(blockId) {
-    console.log('Activando bloque:', blockId);
-    // Primero removemos la clase active de todos los bloques
-    document.querySelectorAll('.datapath-block').forEach(block => {
-        block.classList.remove('active');
-    });
-    
-    // Luego activamos el bloque específico
-    const block = document.getElementById(blockId);
-    if (block) {
-        block.classList.add('active');
-        console.log('Bloque activado:', blockId);
-    } else {
-        console.log('Bloque no encontrado:', blockId);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const instructionInput = document.getElementById('instruction-input');
-    
-    instructionInput.addEventListener('change', function() {
-        const input = this.value.trim();
-        if (input) {
-            activateBlock('pc-block');
-        }
-    });
-});
-
-function translateHextoMIPS() {
-    const input = document.getElementById('instruction-input').value.trim();
-    if (!input) return;
-
-    // Activar el bloque PC al recibir una nueva instrucción
-    activateBlock('pc-block');
-
-    const instructions = hexInput.value.trim().split('\n');
-
-    // Translate each hexadecimal instruction to MIPS
-    const translatedInstructions = instructions.map(instruction => {
-        return translateInstructionToMIPS(instruction.trim());
-    });
-
-    // Join the translated instructions with a newline character
-    const formattedInstructions = translatedInstructions.join('\n');
-
-    // Set the value of the input textarea to the formatted instructions
-    mipsInput.value = formattedInstructions;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const translateButton = document.getElementById('translate-button');
-    
-    if (translateButton) {
-        translateButton.addEventListener('click', function() {
-            activateBlock('pc-block');
-        });
-    }
-});
-
-// Función para activar bloques
-function activateBlock(blockId) {
-    console.log('Función activateBlock llamada para:', blockId); // Para debug
-    const block = document.getElementById(blockId);
-    if (block) {
-        console.log('Bloque encontrado, activando...'); // Para debug
-        // Remover la clase active de todos los bloques
-        document.querySelectorAll('.datapath-block').forEach(b => {
-            b.classList.remove('active');
-        });
-        // Activar el nuevo bloque
-        block.classList.add('active');
-        console.log('Bloque activado'); // Para debug
-    } else {
-        console.log('Bloque no encontrado'); // Para debug
-    }
 }
