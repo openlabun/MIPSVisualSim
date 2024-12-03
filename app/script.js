@@ -1,621 +1,989 @@
+let datapathViz;
+let registerViz;
+let memoryViz;
+let currentInstructionIndex = 0;
+let instructions = [];
+let registers = {
+    zero: 0, at: 0, v0: 0, v1: 0,
+    a0: 0, a1: 0, a2: 0, a3: 0,
+    t0: 0, t1: 0, t2: 0, t3: 0,
+    t4: 0, t5: 0, t6: 0, t7: 0,
+    s0: 0, s1: 0, s2: 0, s3: 0,
+    s4: 0, s5: 0, s6: 0, s7: 0,
+    t8: 0, t9: 0, k0: 0, k1: 0,
+    gp: 0, sp: 0, fp: 0, ra: 0
+};
 
-function translateInstructionToHex(instruction) {
-    const opcodeMap = {
-        "add": "000000", "sub": "000000", "slt": "000000", "and": "000000", "or": "000000",
-        "addi": "001000", "lw": "100011", "sw": "101011",
-        "beq": "000100", "bne": "000101",
-        "j": "000010"
-    };
+let PC = 0;
+let sum1 = 0;
+let gen_rs = 0
+let gen_rt = 0
+let gen_rd = 0
+let gen_regdst = 0
+let gen_offset = 0
+let gen_jumpad = 0
+let gen_instMem = 0
+let gen_instMem2 = 0
+let gen_runit = 0
+let gen_alu = 0
+let gen_aluop = 0
+let gen_alusrc = 0
+let gen_beq = 0
+let gen_zero = 0
+let gen_bne = 0
+let gen_not = 0
+let gen_and2 = 0
+let gen_and1 = 0
+let gen_regwrite = 0
+let gen_data = 0
+let gen_sum2 = 0
+let gen_ra = 0
+let gen_rb = 0
 
-    const funcMap = {
-        "add": "100000", "sub": "100010", "slt": "101010", "and": "100100", "or": "100101",
-    };
 
-    const regMap = {
-        "zero": "00000", "at": "00001", "v0": "00010", "v1": "00011",
-        "a0": "00100", "a1": "00101", "a2": "00110", "a3": "00111",
-        "t0": "01000", "t1": "01001", "t2": "01010", "t3": "01011",
-        "t4": "01100", "t5": "01101", "t6": "01110", "t7": "01111",
-        "s0": "10000", "s1": "10001", "s2": "10010", "s3": "10011",
-        "s4": "10100", "s5": "10101", "s6": "10110", "s7": "10111",
-        "t8": "11000", "t9": "11001", "k0": "11010", "k1": "11011",
-        "gp": "11100", "sp": "11101", "fp": "11110", "ra": "11111"
-    };
+let memory = {};
 
-    const parts = instruction.split(' ');
+const img = document.getElementById('myImage');
+const textOverlay = document.getElementById('description');
 
-    const opcode = opcodeMap[parts[0]];
-    if (!opcode) return "Unknown Instruction";
+img.addEventListener('mousemove', function (e) {
+    const rect = this.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const width = rect.width;
+    const height = rect.height;
 
-    let binaryInstruction = opcode;
-    console.log(parts[0]);
-    if (["add", "sub", "slt", "and", "or"].includes(parts[0])) {
-        // R-type instruction
-        const rd = regMap[parts[1]];
-        const rs = regMap[parts[2]];
-        const rt = regMap[parts[3]];
-        if (!rd || !rs || !rt) return "Invalid Registers";
-        binaryInstruction += rs + rt + rd + "00000" + funcMap[parts[0]];
-    } else if (["lw", "sw"].includes(parts[0])) {
-        // I-type instruction
-        const rt = regMap[parts[1]];
-        const rs = regMap[parts[3].split(',')[0]];
-        const immediate = parseInt(parts[2]);
-        if (!rt || !rs || isNaN(immediate)) return "Invalid Syntax";
-        binaryInstruction += rs + rt + (immediate >>> 0).toString(2).padStart(16, '0');
-    } else if (["addi"].includes(parts[0])) {
-        // I-type instruction
-        const rt = regMap[parts[1]];
-        const rs = regMap[parts[2]];
-        const immediate = parseInt(parts[3]);
-        if (!rt || !rs || isNaN(immediate)) return "Invalid Syntax";
-        binaryInstruction += rs + rt + (immediate >>> 0).toString(2).padStart(16, '0');
-    } else if (["beq", "bne"].includes(parts[0])) {
-        // I-type instruction
-        const rs = regMap[parts[1]];
-        const rt = regMap[parts[2]];
-        const label = parts[3];
-        if (!rs || !rt) return "Invalid Registers";
-        // For simplicity, assuming label is an immediate value (offset)
-        const offset = parseInt(label);
-        if (isNaN(offset)) return "Invalid Syntax";
-        binaryInstruction += rs + rt + (offset >>> 0).toString(2).padStart(16, '0');
-    } else if (["j"].includes(parts[0])) {
-        // J-type instruction
-        const address = parseInt(parts[1]);
-        if (isNaN(address)) return "Invalid Syntax";
-        binaryInstruction += (address >>> 0).toString(2).padStart(26, '0');
-    } else {
-        return "Unsupported Instruction";
+    let text = '';
+    let value = 0
+
+    if (292 < x && x < 320 && 286 < y && y < 330) {
+        text += `PC: ${PC}`;
+    } else if (308 < x && x < 345 && 220 < y && y < 253) {
+        text += `SUM1: ${sum1}`;
+    } else if (445 < x && x < 473 && 300 < y && y < 310) {
+        text += `RS: ${gen_rs}`;
+    } else if (445 < x && x < 473 && 325 < y && y < 340) {
+        text += `RT: ${gen_rt}`;
+    } else if (445 < x && x < 473 && 358 < y && y < 372) {
+        text += `RD: ${gen_rd}`;
+    } else if (632 < x && x < 672 && 366 < y && y < 380) {
+        text += `Offset: ${gen_offset}`;
+    } else if (37 < x && x < 76 && 311 < y && y < 327) {
+        text += `Offset: ${gen_offset}`;
+    } else if (180 < x && x < 215 && 328 < y && y < 353) {
+        text += `Jump: ${gen_offset}`;
+    } else if (41 < x && x < 77 && 343 < y && y < 360) {
+        text += `Beq: ${gen_beq}`;
+    } else if (37 < x && x < 72 && 371 < y && y < 388) {
+        text += `Jump: ${gen_zero}`;
+    } else if (79 < x && x < 100 && 403 < y && y < 420) {
+        text += `Jump: ${gen_not}`;
+    } else if (117 < x && x < 138 && 414 < y && y < 432) {
+        text += `Jump: ${gen_and2}`;
+    } else if (127 < x && x < 147 && 362 < y && y < 380) {
+        text += `Jump: ${gen_and1}`;
+    } else if (444 < x && x < 492 && 253 < y && y < 270) {
+        text += `RegWrite: ${gen_regwrite}`;
+    } else if (99 < x && x < 137 && 289 < y && y < 322) {
+        text += `Sum2: ${gen_sum2}`;
+    } else if (649 < x && x < 684 && 269 < y && y < 286) {
+        text += `RA: ${gen_ra}`;
+    } else if (639 < x && x < 674 && 321 < y && y < 338) {
+        text += `RB: ${gen_rb}`;
+    } else if (847 < x && x < 888 && 288 < y && y < 305) {
+        text += `Result: ${gen_result}`;
+    } else if (847 < x && x < 882 && 316 < y && y < 333) {
+        text += `Zero2: ${gen_zero2}`;
+    } else if (838 < x && x < 896 && 358 < y && y < 375) {
+        text += `MemWrite: ${gen_memwrite}`;
+    } else if (1011 < x && x < 1068 && 368 < y && y < 385) {
+        text += `MmetoReg: ${gen_memtoreg}`;
+    } else if (352 < x && x < 420 && 272 < y && y < 340) {
+        text += `Instruction Memory: ${gen_instMem}`;
+    } else if (928 < x && x < 996 && 276 < y && y < 343) {
+        text += `Instruction Memory2: ${gen_instMem2}`;
+    } else if (753 < x && x < 823 && 272 < y && y < 340) {
+        text += `ALU: ${gen_alu}`;
+    } else if (697 < x && x < 731 && 227 < y && y < 242) {
+        text += `ALUOP: ${gen_aluop}`;
+    } else if (700 < x && x < 740 && 411 < y && y < 426) {
+        text += `ALUSRC: ${gen_alusrc}`;
     }
 
-    // Convert binary instruction to hexadecimal
-    const hexInstruction = parseInt(binaryInstruction, 2).toString(16).toUpperCase().padStart(8, '0');
-    //return "0x" + hexInstruction;
-    return hexInstruction;
-}
+    //text+=` ${x} ${y}`
 
-function translateInstructionToMIPS(hexInstruction) {
-    console.log("hexInstruction", hexInstruction);
-    const opcodeMap = {
-        "000000": "add", "000000": "sub", "000000": "slt", "000000": "and", "000000": "or",
-        "001000": "addi", "100011": "lw", "101011": "sw",
-        "000100": "beq", "000101": "bne",
-        "000010": "j"
-    };
+    textOverlay.textContent = text;
+});
 
-    const funcMap = {
-        "100000": "add",
-        "100010": "sub",
-        "101010": "slt",
-        "100100": "and",
-        "100101": "or",
-    };
-
-    const regMap = {
-        "00000": "zero", "00001": "at", "00010": "v0", "00011": "v1",
-        "00100": "a0", "00101": "a1", "00110": "a2", "00111": "a3",
-        "01000": "t0", "01001": "t1", "01010": "t2", "01011": "t3",
-        "01100": "t4", "01101": "t5", "01110": "t6", "01111": "t7",
-        "10000": "s0", "10001": "s1", "10010": "s2", "10011": "s3",
-        "10100": "s4", "10101": "s5", "10110": "s6", "10111": "s7",
-        "11000": "t8", "11001": "t9", "11010": "k0", "11011": "k1",
-        "11100": "gp", "11101": "sp", "11110": "fp", "11111": "ra"
-    };
-    const binaryInstruction = hexToBinary(hexInstruction);
-    const opcode = binaryInstruction.slice(0, 6);
-    console.log(opcode);
-    const opcodeMIPS = opcodeMap[opcode];
-    if (!opcodeMIPS) return "Unknown Instruction, opcode null";
-
-    let mipsInstruction = opcodeMIPS + " ";
-
-    if (["add", "sub", "slt", "and", "or"].includes(opcodeMIPS)) {
-        // R-type instruction
-        const func = binaryInstruction.slice(26, 32);;
-        console.log("Instruction func ", func);
-        const funcMIPS = funcMap[func];
-        console.log("Instruction ", funcMIPS);
-        if (!funcMIPS) return "Unknown Instruction (function)";
-        mipsInstruction = funcMIPS + " ";
-        const rs = regMap[binaryInstruction.slice(6, 11)];
-        const rt = regMap[binaryInstruction.slice(11, 16)];
-        const rd = regMap[binaryInstruction.slice(16, 21)];
-        if (!rs || !rt || !rd) return "Invalid Registers";
-        mipsInstruction += rd + " " + rs + " " + rt;
-    } else if (["lw", "sw"].includes(opcodeMIPS)) {
-        // I-type instruction
-        const rt = regMap[binaryInstruction.slice(6, 11)];
-        const rs = regMap[binaryInstruction.slice(11, 16)];
-        const offset = binaryInstruction.slice(16, 32);
-        console.log('lw, sw offset ', binaryToHex(offset));
-        if (!rt || !rs || isNaN(offset)) return "Invalid Syntax";
-        mipsInstruction += rs + " " + rt + " " + binaryToHex(offset);
-    } else if (["addi"].includes(opcodeMIPS)) {
-        // I-type instruction
-        console.log("I-type instruction, addi");
-        const rt = regMap[binaryInstruction.slice(6, 11)];
-        const rs = regMap[binaryInstruction.slice(11, 16)];
-        // const immediate = parseInt(binaryInstruction.slice(16, 32), 16);
-        console.log('immediate ', binaryInstruction.slice(16, 32));
-        console.log('immediate formated ', binaryToHex(binaryInstruction.slice(16, 32)));
-        const immediate = binaryToHex(binaryInstruction.slice(16, 32));
-        if (!rt || !rs || !immediate) return "Invalid Syntax";
-        mipsInstruction += rs + " " + rt + " " + immediate;
-    } else if (["beq", "bne"].includes(opcodeMIPS)) {
-        // I-type instruction
-        const rs = regMap[binaryInstruction.slice(6, 11)];
-        const rt = regMap[binaryInstruction.slice(11, 16)];
-        const offset = parseInt(binaryInstruction.slice(16, 32), 16);
-        if (!rs || !rt || isNaN(offset)) return "Invalid Syntax";
-        // For simplicity, assuming label is an immediate value (offset)
-        mipsInstruction += rs + " " + rt + " " + offset;
-    } else if (["j"].includes(opcodeMIPS)) {
-        // J-type instruction
-        const address = binaryToHex(binaryInstruction.slice(6, 32));
-        if (isNaN(address)) return "Invalid Syntax";
-        mipsInstruction += address;
-    } else {
-        return "Unsupported Instruction opcode", opcodeMIPS;
-    }
-
-    return mipsInstruction;
-}
-
-
-// UTILITY FUNCTIONS
-
-function binaryToHex(binaryString) {
-    // Pad the binary string with leading zeros to ensure it's a multiple of 4
-    while (binaryString.length % 4 !== 0) {
-        binaryString = '0' + binaryString;
-    }
-
-    // Initialize an empty string to store the hexadecimal representation
-    let hexString = '';
-
-    // Convert each group of 4 bits to its hexadecimal equivalent
-    for (let i = 0; i < binaryString.length; i += 4) {
-        const binaryChunk = binaryString.substr(i, 4); // Get a chunk of 4 bits
-        const hexDigit = parseInt(binaryChunk, 2).toString(16); // Convert the chunk to hexadecimal
-        hexString += hexDigit; // Append the hexadecimal digit to the result
-    }
-
-    // Return the hexadecimal representation
-    return "0x" + hexString.toUpperCase(); // Convert to uppercase for consistency
-}
-
-function hexToBinary(hex) {
-    let binary = '';
-    for (let i = 0; i < hex.length; i++) {
-        let bin = parseInt(hex[i], 16).toString(2);
-        binary += bin.padStart(4, '0');
-    }
-    return binary;
-}
-
-
-
-function sum(a, b) {
-    return a + b;
-}
-
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    const mipsInput = document.getElementById('mips-input');
-    const hexInput = document.getElementById('hex-input');
-    const simulateMipsButton = document.getElementById('simulate-mips-button');
-    const saveHexButton = document.getElementById('save-to-ram-button');
-    const simulationTables = document.getElementById('simulation-tables');
-
-
-    simulateMipsButton.addEventListener('click', simulateMIPS);
-
-
-    // Get references to the drop area and the file input
-    const dropArea = document.getElementById('dropArea');
-    const fileInput = document.getElementById('fileInput');
-
-
-
-
-    // Prevent default drag behaviors
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    // Highlight drop area when a file is dragged over
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, highlight, false);
-    });
-
-    // Unhighlight drop area when a file is dragged away
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, unhighlight, false);
-    });
-
-    // Handle dropped files
-    dropArea.addEventListener('drop', handleDrop, false);
-
-
-
-    // Function to prevent default drag behaviors
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Function to highlight the drop area when a file is dragged over
-    function highlight() {
-        dropArea.classList.add('highlight');
-    }
-
-    // Function to unhighlight the drop area when a file is dragged away
-    function unhighlight() {
-        dropArea.classList.remove('highlight');
-    }
-
-    // Function to handle dropped files
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-
-        processFiles(files);
-    }
-
-
-
-    // Optional: You can add hover effect to the drop area
-    dropArea.addEventListener('mouseenter', () => {
-        dropArea.style.backgroundColor = '#f0f0f0';
-    });
-
-    dropArea.addEventListener('mouseleave', () => {
-        dropArea.style.backgroundColor = '';
-    });
-
-    function processFiles(files) {
-        const reader = new FileReader();
-
-        reader.onload = function (event) {
-            const fileContent = event.target.result;
-            const lines = fileContent.trim().split('\n');
-
-            // If there are less than two lines, return because the file is not formatted as expected
-            if (lines.length < 2) {
-                console.error("Invalid file format. Expected at least two lines.");
-                return;
-            }
-
-            // Split the second line by spaces to get individual instructions
-            const instructionsArray = lines[1].trim().split(/\s+/);
-
-            // Translate each instruction and build the translated instructions for input textarea
-            let translatedInstructions = '';
-            let originalInstructions = '';
-            instructionsArray.forEach(instruction => {
-                const translated = translateInstructionToMIPS(instruction.trim());
-                translatedInstructions += `${translated}\n`;
-                originalInstructions += `${instruction.trim()}\n`;
-            });
-
-            // Set the value of input textarea with translated instructions
-            mipsInput.value = translatedInstructions.trim();
-            hexInput.value = originalInstructions.trim();
+img.addEventListener('mouseleave', function () {
+    textOverlay.textContent = 'Mueve el mouse sobre la imagen';
+});
+class DatapathVisualizer {
+    constructor(svgElement) {
+        this.svg = svgElement;
+        this.components = {};
+        this.signals = {};
+        this.componentColors = {
+            MUX: '#FF9800',    
+            PC: '#4CAF50',      
+            ADDER: '#2196F3',   
+            InstrMem: '#9C27B0', 
+            Registers: '#E91E63', 
+            ALU: '#00BCD4',      
+            DataMem: '#9C27B0',  
+            Constant: '#607D8B'   
         };
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+        marker.setAttribute("id", "arrowhead");
+        marker.setAttribute("markerWidth", "10");
+        marker.setAttribute("markerHeight", "7");
+        marker.setAttribute("refX", "9");
+        marker.setAttribute("refY", "3.5");
+        marker.setAttribute("orient", "auto");
+        marker.setAttribute("fill", "#2196F3");
 
-        reader.readAsText(files[0]);
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
+
+        marker.appendChild(polygon);
+        defs.appendChild(marker);
+        this.svg.appendChild(defs);
+        this.initializeDatapath();
     }
 
+    initializeDatapath() {
+        const mainPathY = 150; 
+        const spacing = 100;    
+        this.createMux("MUX1", 100, mainPathY);
+        this.createComponent("PC", 220, mainPathY, 60, 40);
+        this.createComponent("InstrMem", 340, mainPathY, 80, 80);
+        this.createComponent("Registers", 480, mainPathY, 100, 80);
+        this.createMux("MUX2", 600, mainPathY);
+        this.createComponent("ALU", 720, mainPathY, 80, 80);
+        this.createComponent("DataMem", 840, mainPathY, 80, 80);
+        this.createMux("MUX3", 960, mainPathY);
+        this.createAdder("ADDER1", 220, mainPathY - 80);  
+        this.createAdder("ADDER2", 220, mainPathY + 80); 
+        this.createComponent("Constant", 340, mainPathY + 80, 40, 40);
+        this.createSignal("MUX1-PC", "MUX1", "PC");
+        this.createSignal("PC-InstrMem", "PC", "InstrMem");
+        this.createSignal("InstrMem-Registers", "InstrMem", "Registers");
+        this.createSignal("Registers-MUX2", "Registers", "MUX2");
+        this.createSignal("MUX2-ALU", "MUX2", "ALU");
+        this.createSignal("ALU-DataMem", "ALU", "DataMem");
+        this.createSignal("DataMem-MUX3", "DataMem", "MUX3");
+        this.createSignal("PC-ADDER1", "PC", "ADDER1", false, true);
+        this.createSignal("PC-ADDER2", "PC", "ADDER2", false, true);
+        this.createSignal("Constant-ADDER2", "Constant", "ADDER2");
+        this.createSignal("ADDER1-MUX1", "ADDER1", "MUX1", true);
+        this.createSignal("ADDER2-MUX1", "ADDER2", "MUX1", true);
+        this.createSignal("InstrMem-MUX2", "InstrMem", "MUX2", false, true);
+        this.createSignal("Registers-ALU", "Registers", "ALU", false, true);
+        this.createSignal("ALU-MUX3", "ALU", "MUX3", false, true);
+    }
+
+    getComponentColor(name) {
+        if (name.startsWith('MUX')) return this.componentColors.MUX;
+        if (name.startsWith('ADDER')) return this.componentColors.ADDER;
+        if (name === 'PC') return this.componentColors.PC;
+        if (name === 'InstrMem') return this.componentColors.InstrMem;
+        if (name === 'Registers') return this.componentColors.Registers;
+        if (name === 'ALU') return this.componentColors.ALU;
+        if (name === 'DataMem') return this.componentColors.DataMem;
+        if (name === 'Constant') return this.componentColors.Constant;
+        return '#2196F3'; 
+    }
+
+    createComponent(name, x, y, width, height) {
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${x},${y})`);
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("width", width);
+        rect.setAttribute("height", height);
+        rect.setAttribute("x", -width / 2);
+        rect.setAttribute("y", -height / 2);
+        rect.setAttribute("rx", "5");
+        rect.setAttribute("ry", "5");
+        rect.setAttribute("fill", this.getComponentColor(name));
+        rect.setAttribute("stroke", "white");
+        rect.setAttribute("stroke-width", "2");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", "0");
+        text.setAttribute("y", "0");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "14px");
+        text.textContent = name;
+
+        group.appendChild(rect);
+        group.appendChild(text);
+        this.svg.appendChild(group);
+
+        this.components[name] = {
+            element: group,
+            x: x,
+            y: y,
+            width: width,
+            height: height
+        };
+    }
+
+    createMux(name, x, y) {
+        const width = 40;
+        const height = 60;
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${x},${y})`);
+        const points = [
+            [-width / 2, -height / 2], 
+            [width / 2, -height / 3],   
+            [width / 2, height / 3],   
+            [-width / 2, height / 2]    
+        ].map(point => point.join(',')).join(' ');
+
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", points);
+        polygon.setAttribute("fill", this.getComponentColor("MUX"));
+        polygon.setAttribute("stroke", "white");
+        polygon.setAttribute("stroke-width", "2");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", "0");
+        text.setAttribute("y", "0");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "14px");
+        text.textContent = name;
+
+        group.appendChild(polygon);
+        group.appendChild(text);
+        this.svg.appendChild(group);
+
+        this.components[name] = {
+            element: group,
+            x: x,
+            y: y,
+            width: width,
+            height: height
+        };
+    }
+
+    createAdder(name, x, y) {
+        const radius = 25;
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("transform", `translate(${x},${y})`);
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", radius);
+        circle.setAttribute("fill", this.getComponentColor("ADDER"));
+        circle.setAttribute("stroke", "white");
+        circle.setAttribute("stroke-width", "2");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", "0");
+        text.setAttribute("y", "-5");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-size", "14px");
+        text.textContent = name;
+
+        const plus = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        plus.setAttribute("x", "0");
+        plus.setAttribute("y", "10");
+        plus.setAttribute("text-anchor", "middle");
+        plus.setAttribute("dominant-baseline", "middle");
+        plus.setAttribute("fill", "white");
+        plus.setAttribute("font-size", "18px");
+        plus.setAttribute("font-weight", "bold");
+        plus.textContent = "+";
+
+        group.appendChild(circle);
+        group.appendChild(text);
+        group.appendChild(plus);
+        this.svg.appendChild(group);
+
+        this.components[name] = {
+            element: group,
+            x: x,
+            y: y,
+            width: radius * 2,
+            height: radius * 2
+        };
+    }
+
+    createSignal(id, from, to, isFeedback = false, isSecondInput = false) {
+        const fromComp = this.components[from];
+        const toComp = this.components[to];
+        if (!fromComp || !toComp) return;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("class", "signal-path");
+        path.setAttribute("stroke", "#2196F3");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("fill", "none");
+        path.setAttribute("marker-end", "url(#arrowhead)");
+        let startX, startY, endX, endY;
+        startX = fromComp.x + fromComp.width / 2;
+        startY = fromComp.y;
+
+        if (isSecondInput) {
+            endX = toComp.x;
+            endY = toComp.y + toComp.height / 2;
+        } else {
+            endX = toComp.x - toComp.width / 2;
+            endY = toComp.y;
+        }
+
+        let d;
+        if (isFeedback) {
+            const midY = Math.min(fromComp.y, toComp.y) - 50;
+            d = `M ${startX} ${startY} 
+                 L ${startX} ${midY} 
+                 L ${endX} ${midY} 
+                 L ${endX} ${endY}`;
+        } else if (isSecondInput) {
+            const midX = (startX + endX) / 2;
+            const bottomOffset = 30;
+            d = `M ${startX} ${startY} 
+                 L ${startX} ${endY + bottomOffset} 
+                 L ${endX} ${endY + bottomOffset} 
+                 L ${endX} ${endY}`;
+        } else {
+            const midX = (startX + endX) / 2;
+            d = `M ${startX} ${startY} 
+                 L ${midX} ${startY} 
+                 L ${midX} ${endY} 
+                 L ${endX} ${endY}`;
+        }
+
+        path.setAttribute("d", d);
+        this.svg.insertBefore(path, this.svg.firstChild);
+        this.signals[id] = path;
+    }
+
+    highlightComponent(name, duration = 800) {
+        const component = this.components[name];
+        if (component) {
+            const rect = component.element.querySelector("rect, polygon, circle");
+            rect.setAttribute("fill", "#E3F2FD");
+            rect.setAttribute("class", "highlight-component");
+
+            setTimeout(() => {
+                rect.setAttribute("fill", this.getComponentColor(name));
+                rect.removeAttribute("class");
+            }, duration);
+        }
+    }
+
+    highlightSignal(id, duration = 800) {
+        const signal = this.signals[id];
+        if (signal) {
+            signal.setAttribute("class", "signal-highlight animated");
+            const length = signal.getTotalLength();
+            signal.style.setProperty('--length', `${length}px`);
+
+            setTimeout(() => {
+                signal.setAttribute("class", "signal-path");
+            }, duration);
+        }
+    }
+}
 
 
-    function saveHexToFile() {
-        // Get the value of the inputHex textarea
-        const hexInstructions = hexInput.value.trim();
-
-        // Check if hexInstructions is empty
-        if (!hexInstructions) {
-            console.error("No instructions found in inputHex textarea.");
+class RegisterVisualizer {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        if (!this.container) {
+            console.error('Register container not found:', containerId);
             return;
         }
-
-        // Split the hexInstructions by newline characters to get individual instructions
-        const instructionsArray = hexInstructions.split('\n');
-
-        // Join the instructions with a space to format them on the second line
-        const instructionsLine = instructionsArray.join(' ');
-
-        // Create a Blob with the hex instructions and instructions line
-        const blob = new Blob(['v2.0 raw\n' + instructionsLine], { type: 'text/plain' });
-
-        // Create a temporary anchor element to trigger the download
-        const anchor = document.createElement('a');
-        anchor.download = 'mips_instructions.hex';
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
+        this.initializeRegisters();
     }
 
+    initializeRegisters() {
+        this.container.innerHTML = '';
+        Object.keys(registers).forEach(reg => {
+            const regItem = document.createElement('div');
+            regItem.className = 'register-item';
 
+            const regName = document.createElement('span');
+            regName.className = 'register-name';
+            regName.textContent = `$${reg}`;
 
-    function translateHextoMIPS() {
-        const instructions = hexInput.value.trim().split('\n');
+            const regValue = document.createElement('span');
+            regValue.className = 'register-value';
+            regValue.id = `reg-${reg}`;
+            regValue.textContent = '0x00000000';
 
-        // Translate each hexadecimal instruction to MIPS
-        const translatedInstructions = instructions.map(instruction => {
-            return translateInstructionToMIPS(instruction.trim());
+            regItem.appendChild(regName);
+            regItem.appendChild(regValue);
+            this.container.appendChild(regItem);
         });
-
-        // Join the translated instructions with a newline character
-        const formattedInstructions = translatedInstructions.join('\n');
-
-        // Set the value of the input textarea to the formatted instructions
-        mipsInput.value = formattedInstructions;
     }
 
-    function updateTables(registers, memory) {
-        // Update the table with register values
-        const registerTable = document.getElementById('registerTable');
-        const rows = registerTable.getElementsByTagName('tr');
-        for (let i = 1; i < rows.length; i++) {
-            const registerName = rows[i].cells[0].textContent;
-            //console.log(registerName);
-            const registerValue = registers[registerName].toString(16).toUpperCase();
-            rows[i].cells[1].textContent = '0x' + registerValue;
-            //console.log(registerName,'0x'+registerValue);
-        }
+    update(registers) {
+        Object.entries(registers).forEach(([reg, value]) => {
+            const element = document.getElementById(`reg-${reg}`);
+            if (element) {
+                const hexValue = (value >>> 0).toString(16).padStart(8, '0');
+                element.textContent = `0x${hexValue}`;
+            }
+        });
+    }
+}
 
-        // Update the table with memory values
-        const memoryTable = document.getElementById('ramTable');
-        const memRows = memoryTable.getElementsByTagName('tr');
-        for (let i = 1; i < memRows.length; i++) {
-            let memoryAddress = memRows[i].cells[0].textContent;
-            // convert memoryAddress to decimal from hex
-            memoryAddress = parseInt(memoryAddress, 16);
-            //console.log(memoryAddress, memory[memoryAddress]);
-            const memoryValue = memory[memoryAddress].toString(16).toUpperCase();
-            memRows[i].cells[1].textContent = '0x' + memoryValue;
+class MemoryVisualizer {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.displayFormat = document.getElementById('memory-display-format');
+        this.searchInput = document.getElementById('memory-search');
+        this.memory = {};
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        if (this.displayFormat) {
+            this.displayFormat.addEventListener('change', () => this.updateDisplay());
+        }
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', () => this.filterMemory());
         }
     }
 
-
-
-
-    function translateMIPStoHex() {
-        const instructions = mipsInput.value.trim().split('\n');
-
-        // Translate each MIPS instruction to hexadecimal
-        const translatedInstructions = instructions.map(instruction => {
-            return translateInstructionToHex(instruction.trim());
-        });
-
-        // Join the translated instructions with a newline character
-        const formattedInstructions = translatedInstructions.join('\n');
-
-        // Set the value of the inputHex textarea to the formatted instructions
-        hexInput.value = formattedInstructions;
+    update(memory) {
+        this.memory = memory;
+        this.updateDisplay();
     }
 
+    updateDisplay() {
+        this.container.innerHTML = '';
+        const format = this.displayFormat ? this.displayFormat.value : 'hex';
+
+        Object.entries(this.memory).sort((a, b) => a[0] - b[0]).forEach(([address, value]) => {
+            const memDiv = document.createElement('div');
+            memDiv.className = 'memory-item';
+            memDiv.innerHTML = `
+                <span class="memory-address">0x${parseInt(address).toString(16).padStart(8, '0')} </span>
+                <span class="memory-value">${this.formatValue(value, format)}</span>
+            `;
+            this.container.appendChild(memDiv);
+        });
+    }
+
+    formatValue(value, format) {
+        switch (format) {
+            case 'hex':
+                return ` 0x${value.toString(16).padStart(8, '0')}`;
+            case 'decimal':
+                return value.toString();
+            case 'binary':
+                return ` 0b${value.toString(2).padStart(32, '0')}`;
+            default:
+                return ` 0x${value.toString(16).padStart(8, '0')}`;
+        }
+    }
+
+    filterMemory() {
+        const searchTerm = this.searchInput.value.toLowerCase();
+        const items = this.container.getElementsByClassName('memory-item');
+
+        Array.from(items).forEach(item => {
+            const address = item.querySelector('.memory-address').textContent;
+            item.style.display = address.toLowerCase().includes(searchTerm) ? '' : 'none';
+        });
+    }
+
+    highlight(address) {
+        const items = this.container.getElementsByClassName('memory-item');
+        Array.from(items).forEach(item => {
+            const itemAddress = item.querySelector('.memory-address').textContent;
+            if (itemAddress === `0x${address.toString(16).padStart(8, '0')}`) {
+                item.classList.add('highlight');
+                setTimeout(() => item.classList.remove('highlight'), 1000);
+            }
+        });
+    }
+}
 
 
-    // Initialize registers and memory
-    let registers = {
-        zero: 0, at: 0, v0: 0, v1: 0,
-        a0: 0, a1: 0, a2: 0, a3: 0,
-        t0: 0, t1: 0, t2: 0, t3: 0,
-        t4: 0, t5: 0, t6: 0, t7: 0,
-        s0: 0, s1: 0, s2: 0, s3: 0,
-        s4: 0, s5: 0, s6: 0, s7: 0,
-        t8: 0, t9: 0, k0: 0, k1: 0,
-        gp: 0, sp: 0, fp: 0, ra: 0
+function translateInstructionToMIPS(hexInstruction) {
+    const binary = parseInt(hexInstruction, 16).toString(2).padStart(32, '0');
+    const opcode = parseInt(binary.slice(0, 6), 2);
+
+    const registerNames = [
+        'zero', 'at', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3',
+        't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7',
+        's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7',
+        't8', 't9', 'k0', 'k1', 'gp', 'sp', 'fp', 'ra'
+    ];
+
+    if (opcode === 0) {
+        const rs = parseInt(binary.slice(6, 11), 2);
+        const rt = parseInt(binary.slice(11, 16), 2);
+        const rd = parseInt(binary.slice(16, 21), 2);
+        const funct = parseInt(binary.slice(26), 2);
+
+        switch (funct) {
+            case 0x20: // add
+                return `add ${registerNames[rd]} ${registerNames[rs]} ${registerNames[rt]}`;
+            case 0x22: // sub
+                return `sub ${registerNames[rd]} ${registerNames[rs]} ${registerNames[rt]}`;
+            default:
+                return `Unknown R-type instruction: ${hexInstruction}`;
+        }
+    }
+
+    const rs = parseInt(binary.slice(6, 11), 2);
+    const rt = parseInt(binary.slice(11, 16), 2);
+    const immediate = parseInt(binary.slice(16), 2);
+    const last = parseInt(binary.slice(26), 2);
+    switch (opcode) {
+        case 0x08: // addi
+            return `addi ${registerNames[rt]} ${registerNames[rs]} 0x${immediate.toString(16).padStart(4, '0')}`;
+        case 0x23: // lw
+            return `lw ${registerNames[rt]} ${immediate} ${registerNames[rs]}`;
+        case 0x2b: // sw
+            return `sw ${registerNames[rt]} ${immediate} ${registerNames[rs]}`;
+        case 0x02:
+            return `j 0x${last.toString(16).padStart(7, '0')}`
+        case 0x04:
+            return `beq ${registerNames[rs]} ${registerNames[rt]} 0x${immediate.toString(16).padStart(4, '0')}`
+        case 0x05:
+            return `bne ${registerNames[rs]} ${registerNames[rt]} 0x${immediate.toString(16).padStart(4, '0')}`
+        default:
+            return `Unknown instruction: ${hexInstruction}`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOM loaded, initializing simulator...');
+    datapathViz = new DatapathVisualizer(document.getElementById('datapath-container'));
+    registerViz = new RegisterVisualizer('register-container');
+    memoryViz = new MemoryVisualizer('memory-container');
+    const elements = {
+        mipsInput: document.getElementById('mips-input'),
+        runButton: document.getElementById('simulate-mips-button'),
+        stepButton: document.getElementById('step-button'),
+        resetButton: document.getElementById('reset-button'),
+        processFileButton: document.getElementById('process-file-button'),
+        fileInput: document.getElementById('fileInput'),
+        dropArea: document.getElementById('dropArea')
     };
-    let memory = Array.from({ length: 32 }).reduce((acc, curr, i) => ({ ...acc, [i]: 0 }), {});
 
-    // SIMULATION FUNCTIONS
+    console.log('Found buttons:', {
+        runButton: !!elements.runButton,
+        stepButton: !!elements.stepButton,
+        resetButton: !!elements.resetButton,
+        processFileButton: !!elements.processFileButton
+    });
 
-    function simulateMIPS() {
-        // Scroll to the simulation tables
-        simulationTables.scrollIntoView({ behavior: 'smooth' });
-
-        // Get the value of the inputHex textarea and split it into instructions
-        const hexInstructions = mipsInput.value.trim().split('\n');
-
-        // Initialize registers and memory
-        resetMIPS();
-
-        // Iterate over each hexadecimal instruction
-        hexInstructions.forEach(instruction => {
-            executeMIPSInstruction(instruction, registers, memory);
+    if (elements.mipsInput) {
+        elements.mipsInput.addEventListener('input', function () {
+            instructions = this.value.trim().split('\n').filter(line => line.length > 0);
+            updateExecutionStatus();
+            console.log('Instructions updated:', instructions);
         });
-
-        // Display the final values of registers and memory
-        console.log('Final Registers:', registers);
-        console.log('Final Memory:', memory);
-
-        // Update tables
-        updateTables(registers, memory);
+    }
+    if (elements.runButton) {
+        elements.runButton.onclick = function () {
+            console.log('Run button clicked');
+            runSimulation();
+        };
     }
 
-    function executeMIPSInstruction(instruction, registers, memory) {
-        // Split MIPS instruction into operation and operands
-        const [op, ...operands] = instruction.split(' ');
-        // Implement execution logic for each MIPS operation
+    if (elements.stepButton) {
+        elements.stepButton.onclick = function () {
+            console.log('Step button clicked');
+            stepSimulation();
+        };
+    }
+
+    if (elements.resetButton) {
+        elements.resetButton.onclick = function () {
+            console.log('Reset button clicked');
+            resetSimulation();
+        };
+    }
+
+    if (elements.processFileButton && elements.fileInput) {
+        elements.processFileButton.onclick = function () {
+            console.log('Process file button clicked');
+            elements.fileInput.click();
+        };
+
+        elements.fileInput.onchange = handleFileSelect;
+    }
+    if (elements.dropArea) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            elements.dropArea.addEventListener(eventName, preventDefaults);
+        });
+
+        elements.dropArea.ondragenter = highlight;
+        elements.dropArea.ondragover = highlight;
+        elements.dropArea.ondragleave = unhighlight;
+        elements.dropArea.ondrop = handleDrop;
+    }
+    resetSimulation();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const svgElement = document.querySelector('#datapath-container svg');
+    if (svgElement) {
+        window.datapathVisualizer = new DatapathVisualizer(svgElement);
+    } else {
+        console.error('SVG element not found');
+    }
+});
+
+function runSimulation() {
+
+    console.log('Running simulation...');
+    resetSimulation();
+    const mipsInput = document.getElementById('mips-input');
+    if (mipsInput && instructions.length === 0) {
+        instructions = mipsInput.value.trim().split('\n').filter(line => line.length > 0);
+        console.log('Loaded instructions:', instructions);
+    }
+    while (currentInstructionIndex < instructions.length) {
+        stepSimulation();
+    }
+
+    console.log('Simulation complete');
+}
+
+function stepSimulation() {
+    console.log('Stepping simulation...', currentInstructionIndex, '/', instructions.length);
+
+    if (currentInstructionIndex >= instructions.length) {
+        console.log('No more instructions to execute');
+        return;
+    }
+
+    const instruction = instructions[currentInstructionIndex];
+    console.log('Executing instruction:', instruction);
+    const currentInstructionElement = document.getElementById('current-instruction');
+    if (currentInstructionElement) {
+        currentInstructionElement.textContent = instruction;
+    }
+
+    highlightDatapath(instruction);
+    executeInstruction(instruction);
+    if (registerViz) registerViz.update(registers);
+    if (memoryViz) memoryViz.update(memory);
+    const pcValueElement = document.getElementById('pc-value');
+    if (pcValueElement) {
+        pcValueElement.textContent = `0x${(currentInstructionIndex * 4).toString(16).padStart(8, '0')}`;
+    }
+
+    currentInstructionIndex++;
+    updateExecutionStatus();
+}
+
+function resetSimulation() {
+    PC = 0;
+    sum1 = 0;
+    gen_rs = 0
+    gen_rt = 0
+    gen_rd = 0
+    gen_regdst = 0
+    gen_offset = 0
+    gen_jumpad = 0
+    gen_instMem = 0
+    gen_instMem2 = 0
+    gen_runit = 0
+    gen_alu = 0
+    gen_aluop = 0
+    gen_alusrc = 0
+    gen_beq = 0
+    gen_zero = 0
+    gen_bne = 0
+    gen_not = 0
+    gen_and2 = 0
+    gen_and1 = 0
+    gen_regwrite = 0
+    gen_data = 0
+    gen_sum2 = 0
+    gen_ra = 0
+    gen_rb = 0
+    console.log('Resetting simulation...');
+    currentInstructionIndex = 0;
+    Object.keys(registers).forEach(key => {
+        registers[key] = 0;
+    });
+
+    memory = {};
+
+    if (registerViz) registerViz.update(registers);
+    if (memoryViz) memoryViz.update(memory);
+    const elements = {
+        currentInstruction: document.getElementById('current-instruction'),
+        pcValue: document.getElementById('pc-value'),
+        aluResult: document.getElementById('alu-result'),
+        mipsInput: document.getElementById('mips-input')
+    };
+
+    if (elements.currentInstruction) elements.currentInstruction.textContent = '-';
+    if (elements.pcValue) elements.pcValue.textContent = '0x00000000';
+    if (elements.aluResult) elements.aluResult.textContent = '-';
+    if (elements.mipsInput) {
+        instructions = elements.mipsInput.value.trim().split('\n').filter(line => line.length > 0);
+    }
+
+    updateExecutionStatus();
+    console.log('Reset complete');
+}
+
+function executeInstruction(instruction) {
+    console.log('Executing instruction:', instruction);
+    const [op, ...operands] = instruction.split(' ');
+
+    const [rs, rt, immediate] = operands;
+    const immValue = parseInt(immediate, 16);
+
+    PC = currentInstructionIndex * 4
+    sum1 = PC + 4
+    sum2 = sum1 + gen_offset
+    try {
         switch (op) {
+            case 'j': {
+                const [last] = operands;
+                const lastValue = parseInt(last, 16);
+                gen_jumpad = lastValue
+                gen_aluop = 0
+                gen_alusrc = 0
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                currentInstructionIndex = lastValue - 1;
+                gen_instMem2 = instruction
+                updateExecutionStatus();
+                break;
+            }
+            case 'beq': {
+                const [rs, rt, immediate] = operands;
+                const immValue = parseInt(immediate, 16);
+                gen_rs = rs
+                gen_rt = rt
+                gen_imm = immValue
+                gen_aluop = 1
+                gen_alusrc = 0
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                gen_runit = registers[rs]
+                gen_alu = registers[rs] - registers[rt]
+                gen_instMem2 = instruction
+                if (gen_alu === 0) {
+                    currentInstructionIndex = currentInstructionIndex + immValue
+                }
+                updateExecutionStatus();
+                break;
+            }
+            case 'bne': {
+                const [rs, rt, immediate] = operands;
+                const immValue = parseInt(immediate, 16);
+                gen_rs = rs
+                gen_rt = rt
+                gen_imm = immValue
+                gen_aluop = 1
+                gen_alusrc = 0
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
+                if (registers[rs] != registers[rt]) {
+                    currentInstructionIndex = currentInstructionIndex + immValue
+
+                }
+                updateExecutionStatus();
+                break;
+            }
             case 'add': {
                 const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] + registers[rt];
+                gen_instMem = instruction
+                gen_rs = rs
+                gen_rt = rt
+                gen_rd = rd
+                gen_aluop = 2
+                gen_alusrc = 0
+                gen_runit = registers[rs]
+                gen_alu = registers[rs] + registers[rt];
+                registers[rd] = gen_alu
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
+                const result = registers[rd];
+                console.log(`Add result: ${registers[rs]} + ${registers[rt]} = ${result}`);
+                const aluResultElement = document.getElementById('alu-result');
+                if (aluResultElement) {
+                    aluResultElement.textContent = `0x${result.toString(16).padStart(8, '0')}`;
+                }
+                break;
+            }
+            case 'addi': {
+                const [rt, rs, immediate] = operands;
+                const immValue = parseInt(immediate, 16);
+                gen_rs = rs
+                gen_rt = rt
+                gen_imm = immValue
+                gen_aluop = 0
+                gen_alusrc = 1
+                registers[rt] = registers[rs] + immValue;
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
+                const result = registers[rt];
+                console.log(`Addi result: ${registers[rs]} + ${immValue} = ${result}`);
+                const aluResultElement = document.getElementById('alu-result');
+                if (aluResultElement) {
+                    aluResultElement.textContent = `0x${result.toString(16).padStart(8, '0')}`;
+                }
                 break;
             }
             case 'sub': {
                 const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] - registers[rt];
-                break;
-            }
-            case 'slt': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] < registers[rt] ? 1 : 0;
-                break;
-            }
-            case 'and': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] & registers[rt];
-                break;
-            }
-            case 'or': {
-                const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] | registers[rt];
-                break;
-            }
-            case 'addi': {
-                const [rd, rs, immediate] = operands;
-                registers[rd] = registers[rs] + parseInt(immediate);
+                gen_rs = rs
+                gen_rt = rt
+                gen_rd = rd
+                gen_aluop = 2
+                gen_alusrc = 0
+                gen_alu = registers[rs] - registers[rt];
+                gen_runit = registers[rs]
+                registers[rd] = gen_alu
+                const result = registers[rd];
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
+                console.log(`Sub result: ${registers[rs]} - ${registers[rt]} = ${result}`);
+                const aluResultElement = document.getElementById('alu-result');
+                if (aluResultElement) {
+                    aluResultElement.textContent = `0x${result.toString(16).padStart(8, '0')}`;
+                }
                 break;
             }
             case 'lw': {
-                const [rt, rs, offset] = operands;
-                const address = registers[rs] + parseInt(offset);
-                //console.log('lw address:', address);
-                //console.log('lw memory value:', memory[address]);
-                if (memory.hasOwnProperty(address)) {
-                    registers[rt] = memory[address];
-                } else {
-                    console.error('Memory address not found:', address);
+                const [rt, offset, rs] = operands;
+                gen_instMem = instruction
+                gen_rs = rs
+                gen_rt = rt
+                gen_offset = offset
+                gen_aluop = 0
+                gen_alusrc = 1
+                gen_runit = registers[rs]
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                gen_alu = registers[rs] + parseInt(offset);
+                registers[rt] = memory[gen_alu] || 0;
+                gen_instMem2 = instruction
+                console.log(`Load word: memory[${address}] = ${registers[rt]}`);
+                const aluResultElement = document.getElementById('alu-result');
+                if (aluResultElement) {
+                    aluResultElement.textContent = `0x${address.toString(16).padStart(8, '0')}`;
                 }
                 break;
             }
             case 'sw': {
-                const [rt, rs, offset] = operands;
-                const address = registers[rs] + parseInt(offset);
-                //console.log('sw rt:', rt, 'rs', rs, 'offset', offset, 'address', address,'getting', registers[rt] );
-                memory[address] = registers[rt];
+                const [rt, offset, rs] = operands;
+                gen_instMem = instruction
+                gen_rs = rs
+                gen_rt = rt
+                gen_offset = offset
+                gen_aluop = 0
+                gen_alusrc = 1
+                gen_ra = registers[rs]
+                gen_rb = registers[rt]
+                gen_runit = registers[rt]
+                gen_alu = registers[rs] + parseInt(offset)
+                memory[gen_alu] = registers[rt];
+                gen_instMem2 = instruction
+                console.log(`Store word: memory[${gen_alu}] = ${registers[rt]}`);
+                const aluResultElement = document.getElementById('alu-result');
+                if (aluResultElement) {
+                    aluResultElement.textContent = `0x${gen_alu.toString(16).padStart(8, '0')}`;
+                }
                 break;
             }
-            // Add cases for other MIPS operations
-            default: {
-                console.error('Unsupported operation:', op);
-                break;
-            }
+            default:
+                console.error('Unknown instruction:', op);
         }
+    } catch (error) {
+        console.error('Error executing instruction:', instruction, error);
+    }
+}
+
+function highlightDatapath(instruction) {
+    const op = instruction.split(' ')[0];
+    datapathViz.highlightComponent('PC');
+    datapathViz.highlightSignal('PC-MUX1');
+
+    if (['lw', 'sw'].includes(op)) {
+        datapathViz.highlightComponent('DataMem');
+        datapathViz.highlightSignal('ALU-DataMem');
+    }
+    if (['add', 'sub'].includes(op)) {
+        datapathViz.highlightComponent('ALU');
+        datapathViz.highlightSignal('Registers-ALU');
     }
 
-    // SETUP THE DEBUGGER
-    const debugPlayButton = document.getElementById('dg-run-button');
-    const debugStepButton = document.getElementById('dg-step-in-button');
-    const debugBackButton = document.getElementById('dg-step-over-button');
-    const debugResetButton = document.getElementById('dg-reset-button');
-    const debuggerInfo = document.querySelectorAll('#debugger-info>p');
+    datapathViz.highlightComponent('Registers');
+}
 
-    debugPlayButton.addEventListener('click', simulateMIPS);
-    debugStepButton.addEventListener('click', stepMIPS);
-    debugBackButton.addEventListener('click', stepBackMIPS);
-    debugResetButton.addEventListener('click', resetMIPS);
-    mipsInput.addEventListener('input', updateDebuggerInfo);
+function updateExecutionStatus() {
+    const progress = `${currentInstructionIndex}/${instructions.length}`;
+    const status = currentInstructionIndex >= instructions.length ? 'Complete' : 'Running';
+    const runButton = document.getElementById('simulate-mips-button');
+    const stepButton = document.getElementById('step-button');
+    if (runButton) runButton.disabled = instructions.length === 0;
+    if (stepButton) stepButton.disabled = instructions.length === 0;
+}
 
-    // Initialize the program counter (PC) and history stack
-    // TODO: DEACTIVATE THE DEBUGGER WHEN COMPLETE THE SIMULATION, SINCE IT DOES NOT USE THE PROGRAM COUNTER
-    let PC = 0;
-    const history = [];
-    updateDebuggerInfo();
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
 
-    function stepMIPS() {
+function highlight(e) {
+    const dropArea = document.getElementById('dropArea');
+    if (dropArea) dropArea.classList.add('drag-over');
+}
 
+function unhighlight(e) {
+    const dropArea = document.getElementById('dropArea');
+    if (dropArea) dropArea.classList.remove('drag-over');
+}
 
-        // Get the value of the inputHex textarea and split it into instructions
-        const hexInstructions = mipsInput.value.trim().split('\n');
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+    unhighlight(e);
+}
 
-        if (PC >= hexInstructions.length)
+function handleFileSelect(e) {
+    const files = e.target.files;
+    handleFiles(files);
+}
+
+function handleFiles(files) {
+    if (files.length === 0) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const content = e.target.result;
+        const lines = content.trim().split('\n');
+
+        if (lines.length < 2) {
+            alert('Invalid file format. Expected at least two lines.');
             return;
-
-        // Push the previous state to the history stack
-        // TODO: This can be improved by only storing the changes in state
-        history.push({ PC, registers: { ...registers }, memory: { ...memory } });
-
-        // Execute the current instruction
-        executeMIPSInstruction(hexInstructions[PC], registers, memory);
-
-        // Increment the program counter (PC)
-        PC++;
-
-        // Check if the program has finished
-        if (PC >= hexInstructions.length) {
-            console.log('Program finished');
-            console.log('Final Registers:', registers);
-            console.log('Final Memory:', memory);
-
-            // debugStepButton.disabled = true;
         }
-
-        // Update tables
-        updateTables(registers, memory);
-
-        // Update debugger info
-        updateDebuggerInfo();
-    }
-
-    function stepBackMIPS() {
-        // Check if the PC is at the beginning of the program
-        if (PC === 0) {
-            console.log('No more steps to undo');
-            return;
-        }
-
-        // Pop the last state from the history stack
-        const lastState = history.pop();
-
-        // Check if there's a state to restore
-        if (lastState) {
-            // Restore the state
-            PC = lastState.PC;
-            registers = lastState.registers;
-            memory = lastState.memory;
-
-            // Update tables
-            updateTables(registers, memory);
-
-            // Update debugger info
-            updateDebuggerInfo();
-        } else {
-            console.log('No more steps to undo');
-        }
-    }
-
-    function resetMIPS() {
-        // Reset the program counter (PC) and history stack
-        PC = 0;
-        history.length = 0;
-
-        // Reset the registers and memory
-        registers = {
-            zero: 0, at: 0, v0: 0, v1: 0,
-            a0: 0, a1: 0, a2: 0, a3: 0,
-            t0: 0, t1: 0, t2: 0, t3: 0,
-            t4: 0, t5: 0, t6: 0, t7: 0,
-            s0: 0, s1: 0, s2: 0, s3: 0,
-            s4: 0, s5: 0, s6: 0, s7: 0,
-            t8: 0, t9: 0, k0: 0, k1: 0,
-            gp: 0, sp: 0, fp: 0, ra: 0
-        };
-        memory = Array.from({ length: 32 }).reduce((acc, curr, i) => ({ ...acc, [i]: 0 }), {});
-
-        // Update tables
-        updateTables(registers, memory);
-
-        // Update debugger info
-        updateDebuggerInfo();
-    }
-
-    function updateDebuggerInfo() {
-        debuggerInfo[0].textContent = `PC: ${PC}`;
-        debuggerInfo[1].textContent = `Current instruction: ${mipsInput.value.trim().split('\n')[PC] ?? null}`;
-        debuggerInfo[2].textContent = `Previous instruction: ${mipsInput.value.trim().split('\n')[PC - 1] ?? null}`;
-    }
-});
-
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    module.exports = {
-        sum,
-        translateInstructionToMIPS,
-        translateInstructionToHex
+        const hexInstructions = lines[1].trim().split(/\s+/);
+        instructions = hexInstructions.map(hex => translateInstructionToMIPS(hex.trim()));
+        const mipsInput = document.getElementById('mips-input');
+        if (mipsInput) mipsInput.value = instructions.join('\n');
+        resetSimulation();
+        updateExecutionStatus();
     };
+    reader.readAsText(files[0]);
 }
