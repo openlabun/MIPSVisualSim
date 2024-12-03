@@ -7,17 +7,58 @@ body {
 h1 {
     text-align: center;
     margin-bottom: 20px;
+    color: #ffffff; /* Color del encabezado */
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap'); /* Fuente Google */
+
+.fixed-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: linear-gradient(90deg, #235a5b, #1e4f50); /* Degradado horizontal */
+    padding: 15px 20px;
+    z-index: 1000;
+    text-align: center;
+    border-bottom: 3px solid #1e4f50;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    font-family: 'Roboto', sans-serif; /* Cambia la fuente */
+    font-size: 1.5rem; /* Ajusta el tamaño de fuente */
+    color: #ffffff; /* Texto blanco */
+    text-transform: uppercase; /* Texto en mayúsculas */
+    letter-spacing: 2px; /* Espaciado entre letras */
+}
+
+.fixed-header h1 {
+    margin: 0;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Sombra del texto */
+}
+
+.fixed-header:hover {
+    background: linear-gradient(90deg, #1e4f50, #235a5b); /* Cambia el degradado al pasar el mouse */
+    transition: all 0.3s ease-in-out; /* Suaviza el cambio de estilo */
+}
+
+#-----------------------------------------------------------------------------------
+.main-content {
+    margin-top: 120px; /* Compensar el header fijo */
+}
+
+.background-image {
+    background-image: url('.app/PC.png');
+    background-size: cover;
+    background-position: center;
+    height: 50vh;
 }
 
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    align-self: center;
     width: 100%;
     min-height: 800px;
     gap: 10px;
-    margin-top: 20px;
 }
 
 .input-container {
@@ -31,14 +72,13 @@ h1 {
 .textarea {
     flex: 1;
     min-width: 0;
-    /* Allow shrinking beyond initial width */
     width: 100%;
-    /* Take up all available space */
     height: 400px;
-    /* Set initial height */
     min-width: 100px;
     margin-right: 10px;
     margin-left: 10px;
+    border: 2px solid #235a5b;
+    color: #235a5b;
 }
 
 .mid-button-container {
@@ -58,35 +98,56 @@ h1 {
     flex-direction: row;
 }
 
+.table-container-wrapper {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    width: 100%;
+}
+
 .table-container {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-bottom: 10px;
 }
 
-button {
+/* Botones generales (incluyendo el de Simulate MIPS y los botones del Debugger) */
+button, .debugger-button {
     padding: 10px 20px;
-    background-color: #4CAF50;
+    background-color: #235a5b; /* Color principal del botón */
     color: white;
     border: none;
     cursor: pointer;
     max-height: 60px;
+    border-radius: 5px;
+    font-size: larger;
 }
 
-button:hover {
-    background-color: #45a049;
+button:hover, .debugger-button:hover {
+    background-color: #1e4f50; /* Color más oscuro al pasar el ratón */
+}
+
+button:active, .debugger-button:active {
+    background-color: #194444; /* Color aún más oscuro al hacer clic */
+}
+
+button:disabled, .debugger-button:disabled {
+    background-color: #82c9c7; /* Color deshabilitado para los botones */
+    cursor: not-allowed;
 }
 
 #dropArea {
-    border: 2px dashed #ccc;
+    border: 2px dashed #235a5b; /* Borde con el color principal */
     padding: 20px;
     text-align: center;
+    color: #235a5b;
 }
 
 /* Highlight style for the drop area */
 #dropArea.highlight {
-    background-color: #f0f0f0;
+    background-color: #e6f2f2; /* Fondo suave al arrastrar un archivo */
 }
 
 .instruction {
@@ -95,32 +156,21 @@ button:hover {
 
 /* DEBUGGER SPECIFIC STYLES */
 
-.debugger-button {
-    box-sizing: border-box;
-    padding: 1px 5px;
-    padding-bottom: 3px;
-    background-color: #00a6ed;
-    border-radius: 5px;
-
-    font-size: larger;
-}
-
 #debugger {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 20px;
-
-    border: 2px dashed green;
+    background-color: #f0f8f8; /* Fondo suave para el debugger */
+    padding: 20px;
+    border: 2px solid #235a5b;
+    border-radius: 5px;
+    text-align: center;
     flex-grow: 0;
     height: fit-content;
-    padding: 10px 20px;
 }
 
 #debugger h2 {
     display: block;
     width: fit-content;
     margin: 10px auto;
+    color: #235a5b;
 }
 
 .debugger-container {
@@ -128,27 +178,12 @@ button:hover {
     flex-direction: column;
     align-items: center;
     gap: 10px;
-
 }
 
 .debugger-buttons {
     display: flex;
     flex-direction: row;
     gap: 10px;
-
-}
-
-.debugger-button:hover {
-    background-color: #0096d6;
-}
-
-.debugger-button:active {
-    background-color: #0077a3;
-}
-
-.debugger-button:disabled {
-    background-color: #82c9e8;
-    cursor: not-allowed;
 }
 
 .debugger-info {
@@ -156,10 +191,160 @@ button:hover {
     flex-direction: column;
     align-items: start;
     gap: 5px;
-
     width: 100%;
+    color: #235a5b;
 }
 
 .debugger-info p {
     margin: 0;
+}
+
+/* Estilos adicionales para las tablas */
+.table {
+    width: 100%;
+    text-align: center;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 10px;
+    border: 1px solid #235a5b;
+}
+
+.table th {
+    background-color: #e6f2f2;
+    color: #235a5b;
+}
+/* ------------------- */
+.table-container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+}
+
+.table {
+    color: #235a5b;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.table th {
+    background-color: #235a5b;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.table td, .table th {
+    border: 1px solid #2e344d;
+    padding: 5px
+;}  
+
+
+.image-container { 
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-left: 72px;
+}
+
+
+.centered-image {
+    max-width: 90%; /* Se adapta al ancho del viewport */
+    max-height: 90%; /* Se adapta a la altura del viewport */
+    object-fit: contain; /* Escala la imagen proporcionalmente */
+    border: 2px solid #235a5b; /* Opcional: Borde decorativo */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Opcional: Sombra para destacar */
+}
+
+.ind_control {
+    position: absolute;
+    z-index: 50;
+    height: 17.5%;
+    width: 12.5%;
+    top: 3.5%;
+    left: 38.7%;
+    opacity: 100%;
+    border-radius: 5px;
+    color: #235a5b;
+}
+
+  
+.ind_pc {
+    position: absolute;
+    z-index: 50;
+    height: 12%;
+    width: 2.4%;
+    top: 36.5%;
+    left: 2.4%;
+    opacity: 100%;
+    border-radius: 5px;
+    color: #235a5b;
+}
+
+.ind_registers {
+    position: absolute;
+    z-index: 50;
+    height: 35%;
+    width: 9%;
+    top: 35%;
+    left: 51%;
+    opacity: 100%;
+    border-radius: 5px;
+    color: #235a5b;
+}
+
+.ind_alucontrol {
+    position: absolute;
+    z-index: 50;
+    height: 9.5%;
+    width: 6.4%;
+    top: 84.3%;
+    left: 67.2%;
+    opacity: 100%;
+    border-radius: 5px;
+    color: #235a5b;
+}
+
+.ind_alu {
+    position: absolute;
+    z-index: 50;
+    height: 18.5%;
+    width: 6.2%;
+    top: 45.5%;
+    left: 71.3%;
+    opacity: 100%;
+    border-radius: 5px;
+    color: #235a5b;
+}
+
+.ind_instregisters {
+    position: absolute;
+    z-index: 50;
+    height: 29.5%;
+    width: 11%;
+    top: 40.5%;
+    left: 29.4%;
+    opacity: 100%;
+    border-radius: 5px;
+    color: #235a5b;
+}
+
+.btn-overlay {
+    position: absolute;
+    z-index: 50;
+    max-height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    padding: 5px 10px;
+    color: #235a5b;
+}
+
+
+.separator {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #6b4b7c, transparent);
+    margin: 20px 0;
 }

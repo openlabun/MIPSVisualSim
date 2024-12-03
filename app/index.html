@@ -5,258 +5,346 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIPS Visual Simulator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilo para la imagen de fondo */
+        .background-image {
+            background-image: url('.app/PC.png');
+            /* Cambia la ruta por la de tu imagen */
+            background-size: cover;
+            background-position: center;
+            height: 20vh;
+            /* Ajusta la altura según necesites */
+        }
+
+        /* Ajusta el contenido para que tenga un buen espaciado */
+        .content {
+            padding: 20px;
+        }
+
+        /* Estilos adicionales para el área de arrastre de archivos */
+        #dropArea {
+            border: 2px dashed #235a5b;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Mejorar la apariencia de los botones */
+        .debugger-buttons button {
+            margin: 5px;
+        }
+        /* Estilos personalizados para la sección de ingreso de instrucciones */
+        .instructions-container {
+            background-color: #f8f9fa;
+            border: 2px solid #235a5b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            height: 480px;
+        }
+
+        .instructions-container textarea {
+            border: 2px solid #235a5b;
+            background-color: #ffffff;
+            color: #235a5b;
+        }
+
+        #simulate-mips-button {
+            background-color: #235a5b;
+            border: none;
+            color: #ffffff;
+        }
+
+        #simulate-mips-button:hover {
+            background-color: #1e4f50;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>MIPS Visual Simulator</h1>
-    <div class="container">
-        <div class="input-container">
-            <textarea class="textarea" id="mips-input" placeholder="Enter MIPS instructions here..."></textarea>
-        </div>
+    
+     <!-- Header fijo -->
+     <div class="fixed-header">
+        <h1>MIPS Visual Simulator</h1>
+    </div>
+    
+    <!-- Parte superior con imagen de fondo -->
+    <div class="background-image"></div>
 
-        <div class="button-container">
-           
-            <div id="dropArea">
-                <p>Drag and drop a RAM file here, or click to select one.</p>
-                <input type="file" id="fileInput" style="display: none;">
-                <button id="process-file-button">Process File</button>
+    <div class="image-container">
+        <img src="PC.png" alt="MIPS Diagram" class="centered-image">
+        <div type="button" class="btn btn-default btn-overlay ind_control" id="btn-control-unit"></div>
+        <!-- <div type="button" class="btn btn-default btn-overlay ind_registers" id="btn-registers"></div> -->
+        <div type="button" class="btn btn-default btn-overlay ind_pc" id="btn-pc"></div>
+        <div type="button" class="btn btn-default btn-overlay ind_alucontrol" id="btn-alu-control"></div>
+        <div type="button" class="btn btn-default btn-overlay ind_alu" id="btn-alu"></div>
+        <div type="button" class="btn btn-default btn-overlay ind_instregisters" id="btn-inst-registers"></div>
+    </div>
+    <div class="separator"></div>
+    <div class="separator"></div>
+    <!-- Parte inferior con el contenido actual de tu proyecto -->
+    <div class="container content main-content">
+        <!-- Sección de la parte inferior -->
+        <div class="row">
+            <!-- Sección de Ingreso de Instrucciones y Arrastrar Archivo (Izquierda) -->
+            <div class="col-md-4 instructions-container">
+                <!-- Ingreso de Instrucciones MIPS -->
+                <div class="mb-4">
+                    <textarea class="form-control" id="mips-input" placeholder="Enter MIPS instructions here..." rows="10"></textarea>
+                </div>
+                <!-- Sección de arrastre de archivo -->
+                <div id="dropArea" class="mb-4">
+                    <p>Drag and drop a RAM file here</p>
+                    <input type="file" id="fileInput" style="display: none;">
+                </div>
+                <button id="simulate-mips-button" class="btn btn-primary w-100">Simulate MIPS</button>
             </div>
-            <button id="simulate-mips-button">Simulate MIPS</button>
-        </div>
-        <div id="simulation-tables" class="button-container">
-            <div class="table-container">
-                <h2>RAM</h2>
-                <table id="ramTable">
-                    <tr>
-                        <th>Address</th>
-                        <th>Value</th>
-                    </tr>
-                    <tr>
-                        <td>0x00</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x01</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x02</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x03</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x04</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x05</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x06</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x07</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x08</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x09</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0A</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0B</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0C</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0D</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0E</td>
-                        <td>0x00</td>
-                    </tr>
-                    <tr>
-                        <td>0x0F</td>
-                        <td>0x00</td>
-                    </tr>
-                </table>
-            </div>
-            
-            <div id="debugger">
-                <h2>Debugger</h2>
-                <div class="debugger-container">
-                    <div class="debugger-buttons">
-                      <button class="debugger-button" id="dg-reset-button">🔃</button>
-                      <button class="debugger-button" id="dg-run-button">▶️</button>
-                        <button class="debugger-button" id="dg-step-in-button">⤵️</button>
-                        <button class="debugger-button" id="dg-step-over-button">⬆️</button>
-                    </div>
-                    <div class="debugger-info" id="debugger-info">
-                        <p>Program Counter: </p>
-                        <p>Current Instruction: </p>
-                        <p>Previous Instruction: </p>
+
+            <!-- Sección del Debugger (Centro) -->
+            <div class="col-md-4">
+                <div id="debugger">
+                    <h2>Debugger</h2>
+                    <div class="debugger-container">
+                        <div class="debugger-buttons mb-2">
+                            <button class="btn btn-secondary" id="dg-reset-button">🔃 Reset</button>
+                            <button class="btn btn-secondary" id="dg-run-button">▶️ Run</button>
+                            <button class="btn btn-secondary" id="dg-step-in-button">⤵️ Step In</button>
+                            <button class="btn btn-secondary" id="dg-step-over-button">⬆️ Step Over</button>
+                        </div>
+                        <div class="debugger-info" id="debugger-info">
+                            <p><strong>Program Counter:</strong> <span id="pc-value">0</span></p>
+                            <p><strong>Current Instruction:</strong> <span id="current-instr">None</span></p>
+                            <p><strong>Previous Instruction:</strong> <span id="previous-instr">None</span></p>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div  class="table-container">
-            <h2>Registers</h2>
-            <table id="registerTable">
-                <tr>
-                    <th>Register</th>
-                    <th>Value</th>
-                </tr>
-                <tr>
-                    <td>zero</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>at</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>v0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>v1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a2</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>a3</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t2</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t3</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t4</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t5</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t6</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t7</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s2</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s3</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s4</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s5</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s6</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>s7</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t8</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>t9</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>k0</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>k1</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>gp</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>sp</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>fp</td>
-                    <td>0x00</td>
-                </tr>
-                <tr>
-                    <td>ra</td>
-                    <td>0x00</td>
-                </tr>
-           
-            </table>
-        </div>
+
+            <!-- Sección de Registros y Memoria (Derecha) -->
+            <div class="col-md-4">
+                <div class="table-container-wrapper">
+                    <!-- Tabla de Registros -->
+                    <div class="table-container">
+                        <table class="table table-bordered" id="registerTable">
+                            <thead>
+                                <tr>
+                                    <th>Register</th>
+                                    <th>Value</th>
+                                </tr>
+                                <tr>
+                                    <td>zero</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>at</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>v0</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>v1</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>a0</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>a1</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>a2</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>a3</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t0</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t1</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t2</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t3</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t4</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t5</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t6</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t7</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s0</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s1</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s2</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s3</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s4</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s5</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s6</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>s7</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t8</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>t9</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>k0</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>k1</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>gp</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>sp</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>fp</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>ra</td>
+                                    <td>0x00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tabla de RAM -->
+                    <div class="table-container">
+                        <table class="table table-bordered" id="ramTable">
+                            <thead>
+                                <tr>
+                                    <th>Address</th>
+                                    <th>Value</th>
+                                </tr>
+                                <tr>
+                                    <td>0x00</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x01</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x02</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x03</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x04</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x05</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x06</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x07</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x08</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x09</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0A</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0B</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0C</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0D</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0E</td>
+                                    <td>0x00</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0F</td>
+                                    <td>0x00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
-
 </html>
