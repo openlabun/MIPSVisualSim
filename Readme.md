@@ -1,21 +1,36 @@
-MIPS Visual Simulator
+# **MIPS Visual Simulator**
 
+![MIPS Visual Simulator](./img/pull.png)
 
-A javascript based MIPS simulator that can simulate the MIPS assembly code. It can simulate the following MIPS instructions:
+**MIPS Visual Simulator** es una herramienta interactiva para simular y visualizar instrucciones de ensamblador MIPS. Este proyecto permite traducir instrucciones de MIPS a hexadecimal y viceversa, además de simular operaciones de registros, memoria, y ejecutar instrucciones paso a paso para una comprensión más profunda del funcionamiento de un procesador basado en MIPS.
 
-1. Arithmetic Instructions (R-Type and I-Type)
-   
+---
 
-# Test instructions
-```assembly
-addi t0 t0 0x0001
-addi t1 t1 0x0002
-addi t2 t2 0x0003
-addi t3 t3 0x0004
-addi t4 t4 0x0005
-add t0 t0 t0
-add t1 t0 t0
-add t2 t1 t1
-add t3 t2 t2
-add t4 t3 t3
-```
+## **Características principales**
+
+- **Traducción de instrucciones:**
+  - De MIPS a hexadecimal.
+  - De hexadecimal a MIPS.
+  
+- **Simulación de instrucciones**:
+  - Soporte para instrucciones aritméticas (`add`, `sub`, etc.).
+  - Instrucciones de carga/almacenamiento (`lw`, `sw`, etc.).
+  - Inmediatas (`addi`, `andi`, etc.).
+  - Instrucciones de salto y ramas (`j`, `jal`, `beq`, etc.).
+
+- **Carga de programas**:
+  - Permite cargar programas en formato `.hex` arrastrando y soltando o seleccionando el archivo.
+
+- **Interfaz interactiva**:
+  - Representación de registros, memoria y tablas actualizadas en tiempo real.
+  - Botones para simular, reiniciar y avanzar en la ejecución.
+
+---
+
+## **Tecnologías utilizadas**
+
+- **Frontend**: HTML, CSS, JavaScript.
+- **Backend**: Node.js.
+- **Librerías adicionales**:
+  - `FileReader` para cargar archivos.
+  - Representación visual con tablas y áreas de texto interactivas.

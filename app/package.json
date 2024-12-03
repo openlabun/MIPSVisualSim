@@ -1,0 +1,20 @@
+{
+  "name": "proyectomip",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "konva": "^9.3.16",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "vite": "^6.0.1"
+  }
+}
