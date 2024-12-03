@@ -23,6 +23,12 @@ let gen_rd = 0
 let gen_regdst = 0
 let gen_offset = 0
 let gen_jumpad = 0
+let gen_instMem = 0
+let gen_instMem2 = 0
+let gen_runit = 0
+let gen_alu = 0
+let gen_aluop = 0
+let gen_alusrc = 0
 let gen_beq = 0
 let gen_zero = 0
 let gen_bne = 0
@@ -68,7 +74,7 @@ img.addEventListener('mousemove', function (e) {
     } else if (180 < x && x < 215 && 328 < y && y < 353) {
         text += `Jump: ${gen_offset}`;
     } else if (41 < x && x < 77 && 343 < y && y < 360) {
-        text += `Jump: ${gen_beq}`;
+        text += `Beq: ${gen_beq}`;
     } else if (37 < x && x < 72 && 371 < y && y < 388) {
         text += `Jump: ${gen_zero}`;
     } else if (79 < x && x < 100 && 403 < y && y < 420) {
@@ -78,28 +84,35 @@ img.addEventListener('mousemove', function (e) {
     } else if (127 < x && x < 147 && 362< y && y < 380) {
         text += `Jump: ${gen_and1}`;
     } else if (444 < x && x < 492 && 253 < y && y < 270) {
-        text += `Jump: ${gen_regwrite}`;
+        text += `RegWrite: ${gen_regwrite}`;
     } else if (503 < x && x < 539 && 209< y && y < 226) {
-        text += `Jump: ${gen_data}`;
+        text += `Data: ${gen_data}`;
     } else if (99 < x && x < 137 && 289 < y && y < 322) {
-        text += `Jump: ${gen_sum2}`;
+        text += `Sum2: ${gen_sum2}`;
     } else if (649 < x && x < 684 && 269 < y && y < 286) {
-        text += `Jump: ${gen_ra}`;
+        text += `RA: ${gen_ra}`;
     } else if (639 < x && x < 674 && 321 < y && y < 338) {
-        text += `Jump: ${gen_rb}`;
-    } else if (639 < x && x < 674 && 321 < y && y < 338) {
-        text += `Jump: ${gen_rb}`;
+        text += `RB: ${gen_rb}`;
     } else if (847 < x && x < 888 && 288 < y && y < 305) {
-        text += `Jump: ${gen_result}`;
+        text += `Result: ${gen_result}`;
     } else if (847 < x && x < 882 && 316 < y && y < 333) {
-        text += `Jump: ${gen_zero2}`;
+        text += `Zero2: ${gen_zero2}`;
     } else if ( 838< x && x < 896 && 358 < y && y < 375) {
-        text += `Jump: ${gen_memwrite}`;
+        text += `MemWrite: ${gen_memwrite}`;
     } else if (1011 < x && x < 1068 && 368 < y && y < 385) {
-        text += `Jump: ${gen_memtoreg}`;
+        text += `MmetoReg: ${gen_memtoreg}`;
     } else if (1078 < x && x < 1113 && 301 < y && y < 318) {
-        text += `Jump: ${gen_data2}`;
-
+        text += `Data2: ${gen_data2}`;
+    }  else if (352 < x && x < 420 && 272 < y && y < 340) {
+        text += `Instruction Memory: ${gen_instMem}`;
+    }  else if (928 < x && x < 996 && 276 < y && y < 343) {
+        text += `Instruction Memory2: ${gen_instMem2}`;
+    } else if (753 < x && x < 823 && 272 < y && y < 340) {
+        text += `ALU: ${gen_alu}`;
+    } else if (697 < x && x < 731 && 227 < y && y < 242) {
+        text += `ALUOP: ${gen_aluop}`;
+    } else if (700 < x && x < 740 && 411 < y && y < 426) {
+        text += `ALUSRC: ${gen_alusrc}`;
     }
 
     //text+=` ${x} ${y}`
@@ -800,6 +813,7 @@ function executeInstruction(instruction) {
 
     PC = currentInstructionIndex * 4
     sum1 = PC + 4
+    sum2 = sum1 + gen_offset
     try {
         switch (op) {
             case 'j': {
@@ -808,7 +822,10 @@ function executeInstruction(instruction) {
                 gen_jumpad = lastValue
                 gen_aluop = 0
                 gen_alusrc = 0
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
                 currentInstructionIndex = lastValue - 1;
+                gen_instMem2 = instruction
                 updateExecutionStatus();
                 break;
             }
@@ -820,8 +837,11 @@ function executeInstruction(instruction) {
                 gen_imm = immValue
                 gen_aluop = 1
                 gen_alusrc = 0
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
                 gen_runit = registers[rs] 
                 gen_alu = registers[rs] - registers[rt]
+                gen_instMem2 = instruction
                 if (gen_alu === 0) {
                     currentInstructionIndex = currentInstructionIndex + immValue
                 }
@@ -836,6 +856,9 @@ function executeInstruction(instruction) {
                 gen_imm = immValue
                 gen_aluop = 1
                 gen_alusrc = 0
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
                 if (registers[rs] != registers[rt]) {
                     currentInstructionIndex = currentInstructionIndex + immValue
 
@@ -845,6 +868,7 @@ function executeInstruction(instruction) {
             }
             case 'add': {
                 const [rd, rs, rt] = operands;
+                gen_instMem = instruction
                 gen_rs = rs
                 gen_rt = rt
                 gen_rd = rd
@@ -853,6 +877,9 @@ function executeInstruction(instruction) {
                 gen_runit = registers[rs]
                 gen_alu = registers[rs] + registers[rt];
                 registers[rd] = gen_alu
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
                 const result = registers[rd];
                 console.log(`Add result: ${registers[rs]} + ${registers[rt]} = ${result}`);
                 const aluResultElement = document.getElementById('alu-result');
@@ -870,6 +897,9 @@ function executeInstruction(instruction) {
                 gen_aluop = 0
                 gen_alusrc = 1
                 registers[rt] = registers[rs] + immValue;
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
                 const result = registers[rt];
                 console.log(`Addi result: ${registers[rs]} + ${immValue} = ${result}`);
                 const aluResultElement = document.getElementById('alu-result');
@@ -889,6 +919,9 @@ function executeInstruction(instruction) {
                 gen_runit = registers[rs]
                 registers[rd] = gen_alu
                 const result = registers[rd];
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
+                gen_instMem2 = instruction
                 console.log(`Sub result: ${registers[rs]} - ${registers[rt]} = ${result}`);
                 const aluResultElement = document.getElementById('alu-result');
                 if (aluResultElement) {
@@ -898,14 +931,18 @@ function executeInstruction(instruction) {
             }
             case 'lw': {
                 const [rt, offset, rs] = operands;
+                gen_instMem = instruction
                 gen_rs = rs
                 gen_rt = rt
                 gen_offset = offset
                 gen_aluop = 0
                 gen_alusrc = 1
                 gen_runit = registers[rs]
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
                 gen_alu = registers[rs] + parseInt(offset);
                 registers[rt] = memory[gen_alu] || 0;
+                gen_instMem2 = instruction
                 console.log(`Load word: memory[${address}] = ${registers[rt]}`);
                 const aluResultElement = document.getElementById('alu-result');
                 if (aluResultElement) {
@@ -915,14 +952,18 @@ function executeInstruction(instruction) {
             }
             case 'sw': {
                 const [rt, offset, rs] = operands;
+                gen_instMem = instruction
                 gen_rs = rs
                 gen_rt = rt
                 gen_offset = offset
                 gen_aluop = 0
                 gen_alusrc = 1
+                gen_ra = registers[rs]  
+                gen_rb = registers[rt]
                 gen_runit = registers[rt]
                 gen_alu = registers[rs] + parseInt(offset)
                 memory[gen_alu] = registers[rt];
+                gen_instMem2 = instruction
                 console.log(`Store word: memory[${gen_alu}] = ${registers[rt]}`);
                 const aluResultElement = document.getElementById('alu-result');
                 if (aluResultElement) {
