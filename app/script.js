@@ -38,8 +38,8 @@ function translateInstructionToHex(instruction) {
     } else if (["lw", "sw"].includes(parts[0])) {
         // I-type instruction
         const rt = regMap[parts[1]];
-        const rs = regMap[parts[3].split(',')[0]];
-        const immediate = parseInt(parts[2]);
+        const rs = regMap[parts[2].split(',')[0]];
+        const immediate = parseInt(parts[2].split(',')[1]);
         if (!rt || !rs || isNaN(immediate)) return "Invalid Syntax";
         binaryInstruction += rs + rt + (immediate >>> 0).toString(2).padStart(16, '0');
     } else if (["addi"].includes(parts[0])) {
@@ -426,6 +426,33 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function simulateMIPS() {
+        console.log('Activando PC block'); // Para debug
+        activateBlock('pc-block');
+        
+        // Después de un pequeño delay, activamos Instruction Memory
+        setTimeout(() => {
+            console.log('Activando Instruction Memory block');
+            activateBlock('inst-mem-block');
+        }, 500);
+
+        // Después activamos Register File
+        setTimeout(() => {
+            console.log('Activando Register File block');
+            activateBlock('registers-block');
+        }, 1000);
+
+        // Después activamos ALU
+        setTimeout(() => {
+            console.log('Activando ALU block');
+            activateBlock('alu-block');
+        }, 1500);
+
+        // Finalmente activamos Data Memory
+        setTimeout(() => {
+            console.log('Activando Data Memory block');
+            activateBlock('data-mem-block');
+        }, 2000);
+
         // Scroll to the datapath section
         document.getElementById('datapath-section').scrollIntoView({ behavior: 'smooth' });
 
@@ -620,6 +647,147 @@ document.addEventListener('DOMContentLoaded', function () {
         debuggerInfo[1].textContent = `Current instruction: ${mipsInput.value.trim().split('\n')[PC] ?? null}`;
         debuggerInfo[2].textContent = `Previous instruction: ${mipsInput.value.trim().split('\n')[PC - 1] ?? null}`;
     }
+
+    // Función para activar los bloques del datapath
+    function activateDatapathBlock(blockId) {
+        // Primero, limpiamos todos los bloques activos
+        document.querySelectorAll('.datapath-block').forEach(block => {
+            block.classList.remove('active');
+        });
+        
+        // Activamos el bloque específico
+        const block = document.getElementById(blockId);
+        if (block) {
+            block.classList.add('active');
+        }
+    }
+
+    // Función para simular la ejecución de una instrucción
+    function simulateInstruction(instruction) {
+        // Resetear todos los bloques
+        document.querySelectorAll('.datapath-block').forEach(block => {
+            block.classList.remove('active');
+        });
+
+        const inst = instruction.toLowerCase();
+        console.log('Simulando instrucción:', inst);
+
+        // Secuencia base (PC e Instruction Memory son comunes para todas las instrucciones)
+        activateBlock('pc-block');
+        
+        setTimeout(() => {
+            activateBlock('inst-mem-block');
+        }, 500);
+
+        // Instrucciones tipo-R (add, sub, and, or, slt)
+        if (inst.startsWith('add ') || inst.startsWith('sub ') || 
+            inst.startsWith('and ') || inst.startsWith('or ') || 
+            inst.startsWith('slt ')) {
+            console.log('Detectada instrucción tipo-R');
+            // Lee dos registros fuente
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Operación en ALU
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // Escribe resultado en registro destino
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 2000);
+        }
+        
+        // Instrucciones tipo-I (addi, andi, ori, slti)
+        else if (inst.startsWith('addi ') || inst.startsWith('andi ') || 
+                 inst.startsWith('ori ') || inst.startsWith('slti ')) {
+            console.log('Detectada instrucción tipo-I');
+            // Lee un registro fuente
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Operación en ALU con inmediato
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // Escribe resultado en registro destino
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 2000);
+        }
+
+        // Instrucciones de memoria (lw, sw)
+        else if (inst.startsWith('lw ') || inst.startsWith('sw ')) {
+            console.log('Detectada instrucción de memoria');
+            // Lee registro base
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Calcula dirección en ALU
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // Accede a memoria
+            setTimeout(() => {
+                activateBlock('data-mem-block');
+            }, 2000);
+
+            // Para lw, escribe en registro
+            if (inst.startsWith('lw ')) {
+                setTimeout(() => {
+                    activateBlock('registers-block');
+                }, 2500);
+            }
+        }
+
+        // Instrucciones de salto (beq, bne)
+        else if (inst.startsWith('beq ') || inst.startsWith('bne ')) {
+            console.log('Detectada instrucción de salto');
+            // Lee dos registros para comparar
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Compara en ALU
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // El PC se actualiza si la condición es verdadera
+            setTimeout(() => {
+                activateBlock('pc-block');
+            }, 2000);
+        }
+    }
+
+    function simulateMIPS() {
+        // Get the value of the mipsInput textarea
+        const instructions = mipsInput.value.trim().split('\n');
+        
+        // Simulate the first instruction
+        if (instructions.length > 0) {
+            simulateInstruction(instructions[0]);
+        }
+
+        // Scroll to the datapath section
+        document.getElementById('datapath-section').scrollIntoView({ behavior: 'smooth' });
+
+        // Resto del código existente...
+    }
+
+    // Modificar la función existente que maneja las instrucciones
+    function handleInstruction(instruction) {
+        // Tu código existente aquí
+        
+        // Añadir la simulación
+        simulateInstruction(instruction);
+    }
 });
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
@@ -628,4 +796,83 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         translateInstructionToMIPS,
         translateInstructionToHex
     };
+}
+
+let lastActiveBlock = null;
+
+function activateBlock(blockId) {
+    console.log('Activando bloque:', blockId);
+    // Primero removemos la clase active de todos los bloques
+    document.querySelectorAll('.datapath-block').forEach(block => {
+        block.classList.remove('active');
+    });
+    
+    // Luego activamos el bloque específico
+    const block = document.getElementById(blockId);
+    if (block) {
+        block.classList.add('active');
+        console.log('Bloque activado:', blockId);
+    } else {
+        console.log('Bloque no encontrado:', blockId);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const instructionInput = document.getElementById('instruction-input');
+    
+    instructionInput.addEventListener('change', function() {
+        const input = this.value.trim();
+        if (input) {
+            activateBlock('pc-block');
+        }
+    });
+});
+
+function translateHextoMIPS() {
+    const input = document.getElementById('instruction-input').value.trim();
+    if (!input) return;
+
+    // Activar el bloque PC al recibir una nueva instrucción
+    activateBlock('pc-block');
+
+    const instructions = hexInput.value.trim().split('\n');
+
+    // Translate each hexadecimal instruction to MIPS
+    const translatedInstructions = instructions.map(instruction => {
+        return translateInstructionToMIPS(instruction.trim());
+    });
+
+    // Join the translated instructions with a newline character
+    const formattedInstructions = translatedInstructions.join('\n');
+
+    // Set the value of the input textarea to the formatted instructions
+    mipsInput.value = formattedInstructions;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const translateButton = document.getElementById('translate-button');
+    
+    if (translateButton) {
+        translateButton.addEventListener('click', function() {
+            activateBlock('pc-block');
+        });
+    }
+});
+
+// Función para activar bloques
+function activateBlock(blockId) {
+    console.log('Función activateBlock llamada para:', blockId); // Para debug
+    const block = document.getElementById(blockId);
+    if (block) {
+        console.log('Bloque encontrado, activando...'); // Para debug
+        // Remover la clase active de todos los bloques
+        document.querySelectorAll('.datapath-block').forEach(b => {
+            b.classList.remove('active');
+        });
+        // Activar el nuevo bloque
+        block.classList.add('active');
+        console.log('Bloque activado'); // Para debug
+    } else {
+        console.log('Bloque no encontrado'); // Para debug
+    }
 }

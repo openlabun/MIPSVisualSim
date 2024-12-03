@@ -214,7 +214,7 @@ button:active {
 .datapath {
     position: relative;
     width: 100%;
-    height: 400px;
+    height: 350px;
     background-color: var(--container-bg);
     padding: 5px;
 }
@@ -223,20 +223,74 @@ button:active {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    display: block;
 }
 
-.component {
-    position: relative;
-    padding: 6px;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background-color: white;
+.datapath-blocks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.datapath-block {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    transition: background-color 0.3s ease;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 0.9em;
-    z-index: 2;
+    font-size: 12px;
+    color: #333;
+    z-index: 10;
+}
+
+.datapath-block.active {
+    background-color: rgba(147, 112, 219, 0.7) !important;
+    pointer-events: none;
+}
+
+/* Posicionamiento del PC */
+#pc-block {
+    left: 12%;
+    top: 44%;
+    width: 30px;
+    height: 30px;
+}
+
+/* Posicionamiento de Instruction Memory */
+#inst-mem-block {
+    left: 18%;
+    top: 40%;
+    width: 56px;
+    height: 55px;
+}
+
+/* Posicionamiento de Register File */
+#registers-block {
+    left: 34%;
+    top: 21%;
+    width: 94px;
+    height: 148px;
+}
+
+/* Posicionamiento de ALU */
+#alu-block {
+    left: 62%;
+    top: 43%;
+    width: 20px;
+    height: 40px;
+}
+
+/* Posicionamiento de Data Memory */
+#data-mem-block {
+    left: 74.5%;
+    top: 40%;
+    width: 97px;
+    height: 107px;
 }
 
 .separator {
