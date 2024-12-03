@@ -1,4 +1,3 @@
-
 function translateInstructionToHex(instruction) {
     const opcodeMap = {
         "add": "000000", "sub": "000000", "slt": "000000", "and": "000000", "or": "000000",
@@ -39,8 +38,8 @@ function translateInstructionToHex(instruction) {
     } else if (["lw", "sw"].includes(parts[0])) {
         // I-type instruction
         const rt = regMap[parts[1]];
-        const rs = regMap[parts[3].split(',')[0]];
-        const immediate = parseInt(parts[2]);
+        const rs = regMap[parts[2].split(',')[0]];
+        const immediate = parseInt(parts[2].split(',')[1]);
         if (!rt || !rs || isNaN(immediate)) return "Invalid Syntax";
         binaryInstruction += rs + rt + (immediate >>> 0).toString(2).padStart(16, '0');
     } else if (["addi"].includes(parts[0])) {
@@ -203,6 +202,9 @@ function sum(a, b) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Initialize tables when the page loads
+    initializeTables();
+
     const mipsInput = document.getElementById('mips-input');
     const hexInput = document.getElementById('hex-input');
     const simulateMipsButton = document.getElementById('simulate-mips-button');
@@ -211,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     simulateMipsButton.addEventListener('click', simulateMIPS);
-
 
     // Get references to the drop area and the file input
     const dropArea = document.getElementById('dropArea');
@@ -265,8 +266,6 @@ document.addEventListener('DOMContentLoaded', function () {
         processFiles(files);
     }
 
-
-
     // Optional: You can add hover effect to the drop area
     dropArea.addEventListener('mouseenter', () => {
         dropArea.style.backgroundColor = '#f0f0f0';
@@ -309,8 +308,6 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.readAsText(files[0]);
     }
 
-
-
     function saveHexToFile() {
         // Get the value of the inputHex textarea
         const hexInstructions = hexInput.value.trim();
@@ -336,8 +333,6 @@ document.addEventListener('DOMContentLoaded', function () {
         anchor.href = window.URL.createObjectURL(blob);
         anchor.click();
     }
-
-
 
     function translateHextoMIPS() {
         const instructions = hexInput.value.trim().split('\n');
@@ -379,27 +374,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-
-
-
-    function translateMIPStoHex() {
-        const instructions = mipsInput.value.trim().split('\n');
-
-        // Translate each MIPS instruction to hexadecimal
-        const translatedInstructions = instructions.map(instruction => {
-            return translateInstructionToHex(instruction.trim());
-        });
-
-        // Join the translated instructions with a newline character
-        const formattedInstructions = translatedInstructions.join('\n');
-
-        // Set the value of the inputHex textarea to the formatted instructions
-        hexInput.value = formattedInstructions;
-    }
-
-
-
-    // Initialize registers and memory
     let registers = {
         zero: 0, at: 0, v0: 0, v1: 0,
         a0: 0, a1: 0, a2: 0, a3: 0,
@@ -408,27 +382,116 @@ document.addEventListener('DOMContentLoaded', function () {
         s0: 0, s1: 0, s2: 0, s3: 0,
         s4: 0, s5: 0, s6: 0, s7: 0,
         t8: 0, t9: 0, k0: 0, k1: 0,
-        gp: 0, sp: 0, fp: 0, ra: 0
+        gp: 0, sp: 0, fp: 0, ra: 0,
+        hi: 0, lo: 0
     };
+
     let memory = Array.from({ length: 32 }).reduce((acc, curr, i) => ({ ...acc, [i]: 0 }), {});
 
-    // SIMULATION FUNCTIONS
+    function initializeTables() {
+        initializeRAMTable();
+        initializeRegisterTable();
+    }
+    function initializeRAMTable() {
+        const ramTableBody = document.querySelector('#ramTable tbody');
+        ramTableBody.innerHTML = '';
+        
+        // Generate RAM table rows (16 rows from 0x00 to 0x0F)
+        for (let i = 0; i < 16; i++) {
+            const row = document.createElement('tr');
+            const addressCell = document.createElement('td');
+            const valueCell = document.createElement('td');
+            
+            addressCell.textContent = `0x${i.toString(16).padStart(2, '0').toUpperCase()}`;
+            valueCell.textContent = '0x00';
+            
+            row.appendChild(addressCell);
+            row.appendChild(valueCell);
+            ramTableBody.appendChild(row);
+        }
+    }
+    function initializeRegisterTable() {
+        const registerTableBody = document.querySelector('#registerTable tbody');
+        registerTableBody.innerHTML = '';
+        
+        // Define register names
+        const registers = [
+            'zero', 'at', 'v0', 'v1', 'a0', 'a1', 'a2', 'a3',
+            't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7',
+            's0', 's1', 's2', 's3', 's4', 's5', 's6', 's7',
+            't8', 't9', 'k0', 'k1', 'gp', 'sp', 'fp', 'ra', 
+            'hi', 'lo'
+        ];
+        
+        
+        // Generate register table rows
+        registers.forEach(reg => {
+            const row = document.createElement('tr');
+            const nameCell = document.createElement('td');
+            const valueCell = document.createElement('td');
+            
+            nameCell.textContent = reg;
+            valueCell.textContent = '0x00';
+            
+            row.appendChild(nameCell);
+            row.appendChild(valueCell);
+            registerTableBody.appendChild(row);
+        });
+    }
+    
 
     function simulateMIPS() {
-        // Scroll to the simulation tables
-        simulationTables.scrollIntoView({ behavior: 'smooth' });
+        
+        console.log('Activando PC block'); // Para debug
+        activateBlock('pc-block');
+        
+        // Después de un pequeño delay, activamos Instruction Memory
+        setTimeout(() => {
+            console.log('Activando Instruction Memory block');
+            activateBlock('inst-mem-block');
+        }, 500);
+        // Después activamos Register File
+        setTimeout(() => {
+            console.log('Activando Register File block');
+            activateBlock('registers-block');
+        }, 1000);
+        // Después activamos ALU
+        setTimeout(() => {
+            console.log('Activando ALU block');
+            activateBlock('alu-block');
+        }, 1500);
+        // Finalmente activamos Data Memory
+        setTimeout(() => {
+            console.log('Activando Data Memory block');
+            activateBlock('data-mem-block');
+        }, 2000);
+        // Scroll to the datapath section
 
+        
+        document.getElementById('datapath-section').scrollIntoView({ behavior: 'smooth' });
+
+        
+        
         // Get the value of the inputHex textarea and split it into instructions
         const hexInstructions = mipsInput.value.trim().split('\n');
 
         // Initialize registers and memory
         resetMIPS();
+        
 
         // Iterate over each hexadecimal instruction
+        const allInstructions=[];
         hexInstructions.forEach(instruction => {
-            executeMIPSInstruction(instruction, registers, memory);
+            allInstructions.push(instruction);
         });
 
+        let PC=0;
+        while(PC<allInstructions.length){
+            PC=executeMIPSInstruction(allInstructions[PC], registers, memory,PC);
+            if(PC==-1){
+                break;
+            }
+        }
         // Display the final values of registers and memory
         console.log('Final Registers:', registers);
         console.log('Final Memory:', memory);
@@ -437,43 +500,90 @@ document.addEventListener('DOMContentLoaded', function () {
         updateTables(registers, memory);
     }
 
-    function executeMIPSInstruction(instruction, registers, memory) {
+    function executeMIPSInstruction(instruction, registers, memory, PC) {
+        //Simular recorrido
+        console.log('current instruction: ', instruction);
+
+
         // Split MIPS instruction into operation and operands
         const [op, ...operands] = instruction.split(' ');
         // Implement execution logic for each MIPS operation
         switch (op) {
-            case 'add': {
+            //FUNCIONA
+            case 'add':
+            case 'addu': {
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] + registers[rt];
+                PC++;
                 break;
             }
-            case 'sub': {
+            //FUNCIONA
+            case 'sub': 
+            case 'subu':{
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] - registers[rt];
+                PC++;
+
                 break;
             }
+            //FUNCIONA
             case 'slt': {
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] < registers[rt] ? 1 : 0;
+                PC++;
+
                 break;
             }
+            //FUNCIONA
             case 'and': {
                 const [rd, rs, rt] = operands;
                 registers[rd] = registers[rs] & registers[rt];
+                PC++;
+
                 break;
             }
-            case 'or': {
+            //FUNCIONA
+            case 'andi':
+            case 'ori':
+            case 'xori':{
+                const [rd, rs, immediate] = operands;
+                if(op=='andi'){
+                    registers[rd] = registers[rs] & parseInt(immediate);
+                }else if(op=='ori'){
+                    registers[rd] = registers[rs] | parseInt(immediate);
+                }else{
+                    registers[rd] = registers[rs] ^ parseInt(immediate);
+                }
+                PC++;
+
+                break;
+            }
+            //FUNCIONA
+            case 'or': 
+            case 'xor':{
                 const [rd, rs, rt] = operands;
-                registers[rd] = registers[rs] | registers[rt];
+                if (op=='xor'){
+                    registers[rd]= registers[rs]^registers[rt];
+                }else{
+                    registers[rd] = registers[rs] | registers[rt];
+                }
+                PC++;
+
                 break;
             }
-            case 'addi': {
+            //FUNCIONA
+            case 'addi': 
+            case 'addiu':{
                 const [rd, rs, immediate] = operands;
                 registers[rd] = registers[rs] + parseInt(immediate);
+                PC++;
                 break;
             }
+            //FUNCIONA
             case 'lw': {
-                const [rt, rs, offset] = operands;
+                const [rt, des] = operands;
+                const  rs=(des.split('(')[1].split(')')[0]);
+                const offset=(des.split('(')[0]);
                 const address = registers[rs] + parseInt(offset);
                 //console.log('lw address:', address);
                 //console.log('lw memory value:', memory[address]);
@@ -482,21 +592,108 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     console.error('Memory address not found:', address);
                 }
+                PC++;
+
                 break;
             }
+            //FUNCIONA
             case 'sw': {
-                const [rt, rs, offset] = operands;
+                const [rt, des] = operands;
+                const  rs=(des.split('(')[1].split(')')[0]);
+                const offset=(des.split('(')[0]);
                 const address = registers[rs] + parseInt(offset);
                 //console.log('sw rt:', rt, 'rs', rs, 'offset', offset, 'address', address,'getting', registers[rt] );
                 memory[address] = registers[rt];
+                PC++;
                 break;
             }
+            //FUNCIONA
+            case 'sll':
+            case 'sra':
+            case 'srl':{
+                const [rd, rt, immediate] = operands;
+                if(op=='sll'){
+                    registers[rd] = registers[rt] << parseInt(immediate);
+                }else if(op=='sra'){
+                    registers[rd] = registers[rt] >> parseInt(immediate);
+                }else if(op=='srl'){
+                    registers[rd] = registers[rt] >>> parseInt(immediate);
+                }
+                PC++;
+
+                break;
+            }
+            //FUNCIONA
+            case 'sllv':
+            case 'srav':
+            case 'srlv':{
+                const [rd, rt, rs] = operands;
+                if(op=='sllv'){
+                    registers[rd] = registers[rt] << registers[rs];
+                }else if(op=='srav'){
+                    registers[rd] = registers[rt] >> registers[rs];
+                }else if(op=='srlv'){
+                    registers[rd] = registers[rt] >>> registers[rs];
+                }
+                PC++;
+
+                break;
+            }
+            //FUNCIONA
+            case 'div':
+            case 'divu':
+            case 'mult':
+            case 'multu':{
+                const [rs, rt] = operands;
+                if(op=='div'){
+                    registers['hi'] = Math.floor(registers[rs] / registers[rt]);
+                    registers['lo'] = registers[rs] % registers[rt];
+                    
+                }else if(op=='divu'){
+                    registers['hi'] = Math.floor(Math.abs(registers[rs]) / Math.abs(registers[rt]));
+                    registers['lo'] = Math.abs(registers[rs]) % Math.abs(registers[rt]);
+                    
+                }else{
+                    let producto = registers[rs] * registers[rt];
+                    registers['hi'] = Math.floor(producto / 0x100000000); // $hi
+                    registers['lo'] = producto & 0xFFFFFFFF; // $lo
+                }
+                PC++;
+
+                break;
+            }
+            //FUNCIONA
+            case 'beq':
+            case 'bne':{
+
+                const [rs, rt, label] = operands;
+                if(op=='beq'){
+                    if(registers[rs]==registers[rt]){
+                        PC=PC+parseInt(label);
+                    }
+                }else{
+                    if(registers[rs]!=registers[rt]){
+                        PC=PC+parseInt(label);
+                    }
+                }
+                PC++;
+                break;
+            }
+            //FUNCIONA
+            case 'j':{
+                const [immediate] = operands;
+                //PC=immediate;
+                PC=immediate;
+            }
+            break;
             // Add cases for other MIPS operations
             default: {
                 console.error('Unsupported operation:', op);
+                PC=-1
                 break;
             }
         }
+        return PC;
     }
 
     // SETUP THE DEBUGGER
@@ -519,12 +716,15 @@ document.addEventListener('DOMContentLoaded', function () {
     updateDebuggerInfo();
 
     function stepMIPS() {
-
-
         // Get the value of the inputHex textarea and split it into instructions
+        const allInstructions=[];
         const hexInstructions = mipsInput.value.trim().split('\n');
 
-        if (PC >= hexInstructions.length)
+        hexInstructions.forEach(instruction => {
+            allInstructions.push(instruction);
+        });
+        
+        if (PC >= allInstructions.length)
             return;
 
         // Push the previous state to the history stack
@@ -532,14 +732,15 @@ document.addEventListener('DOMContentLoaded', function () {
         history.push({ PC, registers: { ...registers }, memory: { ...memory } });
 
         // Execute the current instruction
-        executeMIPSInstruction(hexInstructions[PC], registers, memory);
+        PC=executeMIPSInstruction(hexInstructions[PC], registers, memory,PC);
 
         // Increment the program counter (PC)
-        PC++;
+        console.log('PC actual: ',PC);
 
         // Check if the program has finished
         if (PC >= hexInstructions.length) {
             console.log('Program finished');
+            console.log('Program finished:', PC);
             console.log('Final Registers:', registers);
             console.log('Final Memory:', memory);
 
@@ -594,7 +795,8 @@ document.addEventListener('DOMContentLoaded', function () {
             s0: 0, s1: 0, s2: 0, s3: 0,
             s4: 0, s5: 0, s6: 0, s7: 0,
             t8: 0, t9: 0, k0: 0, k1: 0,
-            gp: 0, sp: 0, fp: 0, ra: 0
+            gp: 0, sp: 0, fp: 0, ra: 0,
+            hi: 0, lo:0
         };
         memory = Array.from({ length: 32 }).reduce((acc, curr, i) => ({ ...acc, [i]: 0 }), {});
 
@@ -610,6 +812,164 @@ document.addEventListener('DOMContentLoaded', function () {
         debuggerInfo[1].textContent = `Current instruction: ${mipsInput.value.trim().split('\n')[PC] ?? null}`;
         debuggerInfo[2].textContent = `Previous instruction: ${mipsInput.value.trim().split('\n')[PC - 1] ?? null}`;
     }
+
+    // Función para activar los bloques del datapath
+    function activateDatapathBlock(blockId) {
+        // Primero, limpiamos todos los bloques activos
+        document.querySelectorAll('.datapath-block').forEach(block => {
+            block.classList.remove('active');
+        });
+        
+        // Activamos el bloque específico
+        const block = document.getElementById(blockId);
+        if (block) {
+            block.classList.add('active');
+        }
+    }
+
+    // Función para simular la ejecución de una instrucción
+    function simulateInstruction(instruction) {
+        // Resetear todos los bloques
+        document.querySelectorAll('.datapath-block').forEach(block => {
+            block.classList.remove('active');
+        });
+
+        const inst = instruction.toLowerCase();
+        console.log('Simulando instrucción:', inst);
+
+        // Secuencia base (PC e Instruction Memory son comunes para todas las instrucciones)
+        activateBlock('pc-block');
+        
+        setTimeout(() => {
+            activateBlock('inst-mem-block');
+        }, 500);
+
+        // Instrucciones tipo-R (add, sub, and, or, slt)
+        if (inst.startsWith('add ') || inst.startsWith('sub ') || 
+            inst.startsWith('and ') || inst.startsWith('or ') || 
+            inst.startsWith('slt ') || inst.startsWith('addu ') ||
+            inst.startsWith('subu ') || inst.startsWith('mult ') ||
+            inst.startsWith('multu ') || inst.startsWith('div ') ||
+            inst.startsWith('divu ') || inst.startsWith('sllv ') ||
+            inst.startsWith('srav ') || inst.startsWith('srlv ') ||
+            inst.startsWith('xor ')) {
+            console.log('Detectada instrucción tipo-R');
+            // Lee dos registros fuente
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Operación en ALU
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // Escribe resultado en registro destino
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 2000);
+        }
+        
+        // Instrucciones tipo-I (addi, andi, ori, slti)
+        else if (inst.startsWith('addi ') || inst.startsWith('andi ') || 
+                 inst.startsWith('ori ') || inst.startsWith('slti ') ||
+                 inst.startsWith('addiu ') || inst.startsWith('sll ') ||
+                 inst.startsWith('sra ') || inst.startsWith('srl ') ||
+                 inst.startsWith('xori ')) {
+            console.log('Detectada instrucción tipo-I');
+            // Lee un registro fuente
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Operación en ALU con inmediato
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // Escribe resultado en registro destino
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 2000);
+        }
+
+        // Instrucciones de memoria (lw, sw)
+        else if (inst.startsWith('lw ') || inst.startsWith('sw ')) {
+            console.log('Detectada instrucción de memoria');
+            // Lee registro base
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Calcula dirección en ALU
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // Accede a memoria
+            setTimeout(() => {
+                activateBlock('data-mem-block');
+            }, 2000);
+
+            // Para lw, escribe en registro
+            if (inst.startsWith('lw ')) {
+                setTimeout(() => {
+                    activateBlock('registers-block');
+                }, 2500);
+            }
+        }
+
+        // Instrucciones de salto (beq, bne)
+        else if (inst.startsWith('beq ') || inst.startsWith('bne ')) {
+            console.log('Detectada instrucción de salto');
+            // Lee dos registros para comparar
+            setTimeout(() => {
+                activateBlock('registers-block');
+            }, 1000);
+
+            // Compara en ALU
+            setTimeout(() => {
+                activateBlock('alu-block');
+            }, 1500);
+
+            // El PC se actualiza si la condición es verdadera
+            setTimeout(() => {
+                activateBlock('pc-block');
+            }, 2000);
+        }
+
+
+        else if (inst.startsWith('j ')) {
+            console.log('Detectada instrucción de salto');
+            // El PC se actualiza si la condición es verdadera
+            setTimeout(() => {
+                activateBlock('pc-block');
+            }, 2000);
+        }
+    }
+
+    function simulateMIPS() {
+        // Get the value of the mipsInput textarea
+        const instructions = mipsInput.value.trim().split('\n');
+        
+        // Simulate the first instruction
+        if (instructions.length > 0) {
+            simulateInstruction(instructions[0]);
+        }
+
+        // Scroll to the datapath section
+        document.getElementById('datapath-section').scrollIntoView({ behavior: 'smooth' });
+
+        // Resto del código existente...
+    }
+
+    // Modificar la función existente que maneja las instrucciones
+    function handleInstruction(instruction) {
+        // Tu código existente aquí
+        
+        // Añadir la simulación
+        simulateInstruction(instruction);
+    }
 });
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
@@ -618,4 +978,83 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         translateInstructionToMIPS,
         translateInstructionToHex
     };
+}
+
+let lastActiveBlock = null;
+
+function activateBlock(blockId) {
+    console.log('Activando bloque:', blockId);
+    // Primero removemos la clase active de todos los bloques
+    document.querySelectorAll('.datapath-block').forEach(block => {
+        block.classList.remove('active');
+    });
+    
+    // Luego activamos el bloque específico
+    const block = document.getElementById(blockId);
+    if (block) {
+        block.classList.add('active');
+        console.log('Bloque activado:', blockId);
+    } else {
+        console.log('Bloque no encontrado:', blockId);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const instructionInput = document.getElementById('instruction-input');
+    
+    instructionInput.addEventListener('change', function() {
+        const input = this.value.trim();
+        if (input) {
+            activateBlock('pc-block');
+        }
+    });
+});
+
+function translateHextoMIPS() {
+    const input = document.getElementById('instruction-input').value.trim();
+    if (!input) return;
+
+    // Activar el bloque PC al recibir una nueva instrucción
+    activateBlock('pc-block');
+
+    const instructions = hexInput.value.trim().split('\n');
+
+    // Translate each hexadecimal instruction to MIPS
+    const translatedInstructions = instructions.map(instruction => {
+        return translateInstructionToMIPS(instruction.trim());
+    });
+
+    // Join the translated instructions with a newline character
+    const formattedInstructions = translatedInstructions.join('\n');
+
+    // Set the value of the input textarea to the formatted instructions
+    mipsInput.value = formattedInstructions;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const translateButton = document.getElementById('translate-button');
+    
+    if (translateButton) {
+        translateButton.addEventListener('click', function() {
+            activateBlock('pc-block');
+        });
+    }
+});
+
+// Función para activar bloques
+function activateBlock(blockId) {
+    //console.log('Función activateBlock llamada para:', blockId); // Para debug
+    const block = document.getElementById(blockId);
+    if (block) {
+        //console.log('Bloque encontrado, activando...'); // Para debug
+        // Remover la clase active de todos los bloques
+        document.querySelectorAll('.datapath-block').forEach(b => {
+            b.classList.remove('active');
+        });
+        // Activar el nuevo bloque
+        block.classList.add('active');
+        //console.log('Bloque activado'); // Para debug
+    } else {
+        //console.log('Bloque no encontrado'); // Para debug
+    }
 }
