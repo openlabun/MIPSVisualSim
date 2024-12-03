@@ -19,3 +19,6 @@ add t2 t1 t1
 add t3 t2 t2
 add t4 t3 t3
 ```
+
+Video demo:
+https://youtu.be/T02pWv8W2kw
