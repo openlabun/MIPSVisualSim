@@ -213,6 +213,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const simulateMipsButton = document.getElementById('simulate-mips-button');
     const saveHexButton = document.getElementById('save-to-ram-button');
     const simulationTables = document.getElementById('simulation-tables');
+    let currentInstruction = null; // Instrucción actualmente procesada
+
 
 
     simulateMipsButton.addEventListener('click', simulateMIPS);
@@ -432,9 +434,16 @@ document.addEventListener('DOMContentLoaded', function () {
         // Iterate over each hexadecimal instruction
         hexInstructions.forEach(instruction => {
             if (PC < hexInstructions.length) {
+                currentInstruction = instruction; // Actualizar la instrucción actual
+                console.log(`Processing instruction at index ${index}:`, instruction);
+    
+                // Execute the instruction
                 executeMIPSInstruction(instruction, registers, memory);
                 PC++;  // Increment PC after each instruction, unless modified by branch or jump
                 console.log("PC updated to:", PC);
+    
+                // Actualiza tablas y botones aquí si necesario
+                updateTables(registers, memory);
             }
         })
 
@@ -607,6 +616,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (PC >= hexInstructions.length)
             return;
+        currentInstruction = hexInstructions[PC];
 
         // Push the previous state to the history stack
         // TODO: This can be improved by only storing the changes in state
