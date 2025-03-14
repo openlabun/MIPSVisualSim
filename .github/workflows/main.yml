@@ -34,7 +34,7 @@ jobs:
           cd /home/proyecto/MIPSVisualSim/
           git pull origin main
           git status
-          docker stop mipsvisualsim-app
-          docker rm mipsvisualsim-app
-          docker build -t mipsvisualsimi .
-          docker run -d -it -p 5021:3000 --restart unless-stopped --name mipsvisualsim mipsvisualsimi
+          docker stop mipsvisualsim
+          docker rm mipsvisualsim
+          docker build -t mipsvisualsimi-image .
+          docker run -d -it -p 5021:3000 --restart unless-stopped --name mipsvisualsim mipsvisualsimi-image
