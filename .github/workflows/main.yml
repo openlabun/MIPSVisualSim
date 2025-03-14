@@ -37,4 +37,4 @@ jobs:
           docker stop mipsvisualsim-app
           docker rm mipsvisualsim-app
           docker build -t mipsvisualsimi .
-          docker run -d -it -p 5021:3000 --restart unless-stopped --name mipsvisualsim-app mipsvisualsimi
+          docker run -d -it -p 5021:3000 --restart unless-stopped --name mipsvisualsim mipsvisualsimi
